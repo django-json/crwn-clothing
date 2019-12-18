@@ -21,7 +21,6 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
 
 	//gets the document snapshot from the document reference using the .get() method
 	const snapShot = await userRef.get();
-	
 	//this creates a user data if there is no existing data on this documentRef.
 
 	if(!snapShot.exists) {

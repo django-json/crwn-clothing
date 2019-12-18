@@ -20,21 +20,26 @@ class SignUp extends Component{
 	}
 
 	handleSubmit = async event => {
+		//Used to prevent native browser reloads when the form submits
 		event.preventDefault();
 
+		//Deconstructs the properties from the state object
 		const { displayName, email, password, confirmPassword } = this.state;
 
+		//Checks if passwords match
 		if(password !== confirmPassword) {
 			alert("passwords don't match");
 			return;
 		}
 
 		try {
+			//Deconstucts the user property returned by auth after creating a user using .createUserWithEmailAndPassword() built-in auth method.
 			const { user } = await auth.createUserWithEmailAndPassword(email, password);
 
+			//Storing data to the firestore
 			await createUserProfileDocument(user, { displayName });
 
-			//This will clear the form fields
+			//This will clear the form fields after the form submits
 			this.setState({
 				displayName: '',
 				email: '',
@@ -42,7 +47,7 @@ class SignUp extends Component{
 				confirmPassword: ''
 			});
 		} catch (error) {
-			console.error(error);
+			console.log(error);
 		}
 	};
 
