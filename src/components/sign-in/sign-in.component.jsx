@@ -22,8 +22,12 @@ class SignIn extends Component {
 		const { email, password } = this.state;
 
 		try {
+			//passing email and password to firebase auth .signInWithEmailAndPassword() method with await which waits for the promised to be returned
 			await auth.signInWithEmailAndPassword(email, password);
+
+			//clears the form fields when the form submits
 			this.setState({ email: '', password: '' });
+
 		} catch (error) {
 			console.log(error);
 		}
