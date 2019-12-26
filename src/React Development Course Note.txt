@@ -1,0 +1,1761 @@
+CHAPTER #2: React Key Concepts
+
+---------React Key Concepts---------
+- came in 2013
+-The Birth of SPA (Single Page Application)
+	-> applications acted more like a desktop application where we stay on the same page the entire time and the javascript file simply changes or updates the GMO file or the DOM to display new things.
+
+*****************
+REACT CONCEPTS
+*****************
+
+---------Declarative vs Imperative---------
+
+	1. Don't touch the DOM. I'll do it
+		-pure javascript manipulate the DOM for the entire page (IMPRERATIVE) but React is not. It is DECLARATIVE. It uses Virtual DOM.
+
+		-It takes time to change the DOM. The process is like these:
+
+			1. It repaints
+				-change an element and add onto a page and then refloat which is to recalculate the layout of the page and move things around if need to be.
+
+---------Component Architecture---------
+
+	2. Building websites like lego blocks
+
+	-react had this idea of small components that you put them together to form bigger components.
+
+---------One Way Data Flow---------
+
+	3. Unidirectional data flow
+
+		-if the state changed, the data can never move up.
+
+		-this restriction of the data makes it easy to debug code.
+
+---------UI Library---------
+
+	4. UI, the rest is up to you.
+		-cross platform
+		-imported two libraries in react when starting project:
+			1. core react library
+			2. React DOM  (Virtual) library
+
+
+---------How To Be A Great React Developer---------
+
+React Keywords:
+	Declarative
+	JSX
+	State
+	Props
+	VirtualDOM
+	Components
+
+	- we give some state, some components that are built with something called JSX and these components sometimes receive properties which are called Props.
+
+The Job of React Developer:
+1. Decide on Components
+2. Decide the State and where it lives
+3. What changes when state changes.
+
+**********************************************
+
+CHAPTER #3: React Basics
+
+----------Section Overview----------
+1. Download Node.js
+
+2. Download NPM and NVM (optional. Used to manage package versions of NPM).
+
+3. Install React commands:
+	npm install create-react-app
+	create-react-app [name_of_your_app]
+
+4. Environmental Setup:
+	-Choose your Code Editor
+		1. Sublime
+		2. Visual Studio Code
+
+----------Create React App----------
+
+>>> npx create-react-app [name_of_your_app]
+	//command to create the react application
+	//remember to disable your antivirus before running this command
+
+>> npm start
+	//command to display the app on the browser.
+
+The Folder React created:
+-Inside the folder there are two main folders:
+	1. src
+		- this is the source folder where all of the react code that was written for our application lies.
+
+	2. public
+		-this is a public folder where all those files where our browser needs an older version of JavaScript and HTML to understand.
+
+* When we save our code, what it's going to do is it's going to turn all of the react code in our source folder into that version that the browser understands and put it inside of this public folder.
+
+Inside App.js file:
+	- all the HTML displayed on the browser is in App.js in JSX format.
+		-how this works is that when we look at the index.js, it imports the App function from App.js.
+
+		Then there's this reactDOM library that calls render and it renders our App function in the form of what looks like an HTML tag (JSX). 
+
+		Then there's this document.getElementById('root') which is looking on the document object for some elements with an id of "root" and it's replacing it with the App function that returns HTML.
+
+		It is going to replace that element with the id of root with all of that HTML from our function where that element with an id of "root" is inside the index.html file which is also inside the body tag and also the entry way for our application.
+
+Diagram:
+
+Sample Code:
+In index.js file
+*******************************************************************
+	import React from 'react';
+	import ReactDOM from 'react-dom';
+	import './index.css';
+	import App from './App';
+	import * as serviceWorker from './serviceWorker';
+
+	ReactDOM.render(<App />, document.getElementById('root'));
+********************************************************************
+
+Description on how React Works:
+
+App.js (returns an HTML) -> index.js (imports App function from App.js) -> ReactDOM library (calls render to render the app function in a JSX format) ->
+
+document.getElementById('root') [looks for an element with an id of "root" and replace it with the HTML returned by the App function] -> index.html (where the file containing the element with an id of "root").
+
+----------React Project Setup----------
+
+NPM - is a package manager. It initially sees a way for us to automate the process of installing, upgrading, configuring or removing any libraries that we want.
+
+	example: installing the react app
+
+"build script" - it optimizes the code. This will create a build folder with the optimized code in it (minified).
+
+	-what is going to do with the "build" folder that was created after running the command "npm run build" is to take this folder and put this on the server.
+
+create-react-app - uses Webpack and Babel.
+
+Babel and Webpack - take our source folder.
+
+	-Babel will make sure that all our files are gonna work on all these browsers no matter what version, no matter how old they are, how new they are.
+
+	It will make sure that every single one of these JavaScript files is going to be understood.
+
+	-Webpack is a module bundler. It's letting the capability to write a modular code.
+
+React and ReactDOM 
+	1. React allows us to write an HTML like syntax inside a javascript file (JSX) and it understands it because of this react library.
+
+	2. ReactDOM interact with the DOM
+		-ReactDOM allows us to use render that will grab an element from html and insert app into it.
+
+----------Class Components----------
+
+state - a javascript object with properties that we can access at any point of our class.
+
+	-in order to enable to use state, the following must be present:
+		1. constructor() method.
+		2. super() method inside the constructor's statement block.
+
+		* Now you can use this.state property on the class app and can now set it to something.
+
+		Sample Code:
+		***************************
+		constructor() {
+			super();
+
+			this.state = {}
+		}
+		***************************
+
+		* this.setState() can now be used to set the state in our class.
+
+----------Thinking In JSX----------
+
+* The attributes of JSX is not always the same as HTML like "className" in JSX instead of "class" in HTML.
+
+* All of the JavaScript expressions are enclosed with curly braces.
+
+* The reason why setState() is used when changing the state's value is it because we are "Updating" the state not modifying it automatically.
+
+* Everytime the state changes, it rerenders the component with the new state.
+
+* JSX is trying to mimic HTML so with that, it can create the virtual DOM and breakdown each part of the app into components that keep getting rerendered as we update the state using the setState().
+
+----------Dynamic Content----------
+
+* Unique key for list of items
+	-React wants to know what element needs to be updated when we iterate a list of items and display it on the browser.
+
+	Sample code:
+	*******************************
+	object = [
+		{
+			id: '',
+			item_name: ''
+		},
+		{
+			id: '',
+			item_name: ''
+		}
+	];
+
+	...
+
+	<h1 key={ object.id }> { object.item_name } </h1>
+	********************************
+
+* React is smart enough to know that if only one element in a list of a thousand elements changes, it only needs to rerender the part of the HTML that matters and not the whole thing.
+
+----------Single Page Application (SPA)----------
+
+* Instead of having to communicate back and forth with the server, it doesn't need to go back and just have a javascript or react that rerender the DOM with something else.
+
+* Instead of requesting a page, it's turn more into requesting for data.
+
+* This makes it possible to communicate with outside servers. 
+
+----------Fetching Content----------
+
+Life Cycle Methods
+	-methods that are called at different stages of when component gets rendered.
+
+	Some Methods:
+		componentDidMount()
+
+fetch() 
+	-make an API request that returns a promise.
+
+	Sample Code:
+	******************************
+	componentDidMount() {
+		fetch('https://jsonplaceholder.typicode.com/users')
+		.then(response => response.json())
+		.then(user => console.log(user))
+	}
+
+----------Architecting Our App----------
+
+For Component Preferences:
+	1. All components should be stored in a folder named "components"
+
+		1.1. The component files for style and jsx.
+			* Under the ComponentName folder:
+				componentName.component.jsx
+				componentName.styles.css
+
+			* Sample Architecture:
+				components/card/card.component.jsx
+				components/card/card.styles.css
+
+----------Focusing on Components----------
+
+prop - an object of any properties that you write onto a component where it gets used.
+
+children - one of the main properties that exists on props object.
+		 - it is what is pass in between the brackets of our component that gets called.
+
+		 example: 
+		 In App.js:
+		 ******************************
+		 <Component propName="someValue">
+		 	<h1>Some Value</h1> 
+		 	//this is a child of a component
+		 </Component>
+
+		 ...
+
+		 In ComponentName.component.jsx:
+		 export const CardList = props => {
+		 	return <div>{ props.children }</div>
+		 };
+
+		 *******************************
+
+		 -it gets attached to the actual class as a property called Props.
+
+----------Breaking Into Components----------
+
+Question:
+	When do we break things down into components?
+
+Answer:
+	When we break things down we're making things more flexible because each component does one thing so that it can be used in other places. 
+
+	To simplify complex logic.
+
+	Flexibility of performance and components that are easy to test because they're so simple.
+
+	The reason we break things down into smaller and smaller components is that we combine each component with its concern and that concern is that this component is only concerned about its uses.
+
+----------State vs Props----------
+
+State usually live in one location and it trickles down as props.
+
+Everytime the state changes it will pass on to the components who need it and will rerender itself with the new prop information and display the new rendered component to the browser.
+
+----------More On State----------
+
+setState() is asynchronous.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Synchronous vs Asynchronous:
+
+Synchronous 
+	-is something that we can expect to happen almost immediately. JavaScript will wait for the action to finish before it continues.
+Asynchronous
+	-is something that actually takes an indefinite amount of time that JavaScript does not know.
+
+	-what it does is it actually runs the rest of the code after and then when the asynchronous event finishes, it then runs that finished event.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+setState has a second argument and it is a callback function.  
+
+----------React Events----------
+
+React SyntheticEvent
+
+Synthetic Events like: onClick, onMouseOver, etc. cannot be used as asynchronous.
+
+----------Filtering State----------
+
+Destructuring
+	-allows us to pull properties off of an object and set them to constants that we put inside of "const { }"
+
+
+array.filter() method
+	* When you want to search for something like you want to search for a specific record using the searchbar on the app displayed on the browser, use this method. 
+
+	* Make sure to lowercase everything and use .includes() method to check that the user inputted value match with your database/local storage/arrays or something.
+
+	Sample Code:
+	*******************************************
+	this.state = {
+		users: '',
+		searchField: ''
+	};
+
+	...
+
+	/*Destructuring*/
+	const { users, searchField } = this.state;
+
+	/*Equivalent way instead of Destructuring*/
+	const users = this.state.users;
+	const searchField = this.state.searchField;
+
+	const users = users.filter(user => {
+		user.name.toLowerCase().includes(searchField.toLowerCase())
+	});
+	*******************************************
+
+Sample Scenario using Searchbar:
+	When you input something on the searchbar, it will trigger the synthetic event called "onChange" which will capture all the events of what you inputted on.
+
+	It will then call the setState to set the new State which will rerender the components afterwards.
+
+	When it rerenders, it (re)filters the records/lists of record using array.filter() to filter the records that meet with what you want to search for.
+
+	The filtered value will be stored in a constant which will be passed to the component as a prop and rerender that component and display the new changes on the browser with the new prop information.
+
+----------More on Component----------
+
+Functional Components
+	-they don't have access to the state because they don't have access to the constructor which is a class method on our component that we import from react that we extend our class from.
+
+	-they don't have internal state and lifecycle methods because they don't always need to use lifecycle methods or internal state.
+
+	-sometimes all we want to do is render some HTML and that's what a functional component really is.
+
+	-unlike class component, a functional component is just a component that gets some props and returns some HTML.
+
+	* The main thing to remember is if you don't think that you need internal state nor access the lifecycle methods then just use a functional component because it's easier to read and easier to test and in some ways smaller and easier to reason about.
+
+
+----------Where To Put State----------
+
+* You may want to move the state in high enough position so that we are still able to pass down that information to different nodes.
+
+----------Class Methods and Arrow Functions----------
+
+"this" keyword
+	-special keyword in JavaScript that references the context in which it's being invoked.
+
+	*If we want to write our own method, to represent our own (custom) method we would have to be careful about how we write it.
+
+"bind" function
+	- is a method on any function that returns a new function where the context of "this" keyword is set to whatever we passed to it and the context of "this" that we're setting in handle change is the "this" keyword that is defined inside of our constructor which knows that it's our component.
+
+* When JavaScript first created our app component, it also defined all of the methods on our components including your custom method/function. And it understands that this custom method is an arrow function. When this arrow function came into existence to JavaScript, it was going to bind any references to "this" inside of it to the context in which it was defined which is our app component.
+
+Sample Code:
+
+*********************************************
+constructor() {
+	super()
+	this.state = {
+		...
+	};
+
+	this.handleSearchChange = this.handleSearchChange.bind(this);
+	//in order not to use this way, it needs to use ES6 arrow function just like below the scope of this class method code.
+}
+
+...
+
+//this is a lexical scoping 
+//this doesn't need to use the above code.
+
+handleSearchChange = (event) => {
+	this.setState({...})
+}
+
+******************************************
+
+----------Deploying the App on Github----------
+
+1. Go to Github and add repository and write the name of the app on the project name
+
+2. Copy the link
+
+3. Go to cmd and locate your project directory
+
+4. git remote add origin [paste the link here]
+   /*write this command on the console*/
+
+5. npm install gh-pages
+   /*write this command on the console*/
+
+6. Go to the package.json file and add the following properties:
+
+	"homepage": "https://[your github_username].github.io/[name_of_repo]",
+
+	"scripts": {
+	    "predeploy": "npm run build",
+	    "deploy": "gh-pages -d build"
+	}
+
+6. npm run deploy
+   /*write this command on the console*/
+
+7. git add -A
+   /*write this command on the console*/
+
+8. git commit -m "adding files for github pages"
+   /*write this command on the console*/
+
+9. git push origin master
+   /*write this command on the console*/
+   
+
+
+----------Vitual DOM + Unidirectional Data Flow----------
+
+Virtual DOM
+	- is just a complete copy of this actual DOM but in JavaScript.
+
+	-whenever we update any of the data that ends up being rendered in our components,
+	react doesn't rerender the entire DOM. It only wants to affect the thing that matters.
+
+		* So what react does is it actually copies the virtual DOM except this time it's going to apply the changes with the data that got updated so the new state will be changed and apply the changes to that specific component that needs changes without affecting the other components.
+
+		* It's going to apply those changes to the copied virtual DOM. And what react will do is it will compare this new virtual DOM to the actual DOM and apply the changes to the actual DOM as it sees changes (It will only apply to the node that needs changes).
+
+		Diagram:
+		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+					Views
+				   /\   \
+				   /	 \
+				  /		  \
+				 /		   \
+			    /		    \
+			   /			 \
+			  /				  \
+			 /				   \
+			/				    \
+		   /  				    \/
+  		 State <------------- Actions
+
+  		 Description:
+  		 	When the state changes, it will pass the data as props to the components that needed it. These components then will rerender and apply the changes with the new data.
+
+  		 	Any user actions that will be made in these components will trigger an action that will update the state and then the process continues.
+
+  		 	This process is what we called "Unidirectional Data Flow"
+
+  		^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+----------React LifeCycle Methods - Mounting----------
+
+By Order Cycle when Mounting:
+	
+	-----Render Phase----
+	(Pure and has no side effects. May be paused, aborted or restarted by React)
+
+	1. constructor()
+	2. render()
+
+	-----Commit Phase----
+	(Can work with DOM, run side effects, schedule updates)
+
+	2.1. React updates DOM and refs
+	3. componentDidMount()
+
+
+----------React LifeCycle Methods - Updating----------
+
+By Order Cycle when Updating:
+
+	-----Render Phase----
+
+	1. New props, setSate(), forceUpdate() 
+	1.1. shouldComponentUpdate()
+	2. render()
+
+	-----Commit Phase----
+
+	2.1. React updates DOM and refs
+	3. componentDidUpdate()
+
+	Sample Code for:
+
+		shouldComponentUpdate():
+		***********************************************
+
+		shouldComponentUpdate(nextProps, nextState) {
+			return nextProps.text !== this.props.text;
+		}
+
+		***********************************************
+
+		* We use this lifecycle method for performance purposes because as the state changes but with the same data or any conditions that you want to be met, it will still render the components with the same state that will be passed as props which is a waste of performance.
+
+
+----------React LifeCycle Methods - Unmounting----------
+
+By Order Cycle when Unmounting:
+
+	-----Commit Phase----
+
+	1. componentWillUnmount()
+
+	* This is usually use for avoiding data leakage.
+
+*******************************************************
+Chapter #4: Master Project Setting Up E-commerce Project
+
+----------E-commerce Homepage + Sass Setup----------
+
+>>> npm install node-sass
+//to install the upgraded version of CSS
+
+* Package lock files
+	- allow us to have consistent installs across machines so that all these dependencies have the exact version number that they need in order for everything to work.
+
+* "pages" folder in React App
+	-Any components that can only be used once unlike reusable components that are stored in the "components" folder.
+
+* `` this is a string interpolation. This is used when you want to combine string and javascript expression with ${...some expression}. 
+
+* When you want to add a link element on your html used for font-styling and etc., add it on "index.html" under public folder.
+
+* When you want to apply a font to all parts of your app, apply css on App.css
+
+*************************************************
+
+CHAPTER #5: Master Project React Router and Routing
+
+
+>>> npm install react-router-dom
+	/*this will allow to handle routes*/
+
+	//import this in index.js file like this and wrap the App component with it's component:
+
+	In index.js
+	*******************************************
+	import { BrowserRouter } from 'react-router-dom';
+
+	import './index.css';
+	import App from './App';
+
+	ReactDOM.render(
+		<BrowserRouter>
+			<App />
+		</BrowserRouter>
+		//this gives all the functionality of ReactRouter library to our app
+		, document.getElementById('root'));
+	*******************************************
+
+	...
+
+	In App.js
+	*******************************************
+	import { Switch, Route } from 'react-router-dom';
+
+	class App extends Component {
+		render() {     
+			return (
+				<div>
+					<Switch>
+						<Route exact path='/' component={ HomePage }/>
+						<Route path='/hats' component={ HatsPage }/>
+					</Switch>
+				</div>
+			);
+		}
+	}
+	*******************************************
+
+	The main properties of Route component(some of attributes):
+
+		1. component
+			- this is the component that will be rendered when routing to other page
+
+		2. path
+			- will be a string that's equal to the path itself from the current place and all.
+
+		3. exact
+			- this is a true or false property. The default value is true.
+		    * The “exact” prop is important because I only want this Route to render when the URL is exactly “/”.
+			If the exact prop was not on the Route component, all Routes starting with a “/” such as “/todos/new” would evaluate to true for that Route, when they really shouldn’t in this case.
+
+	-------
+	The Switch component:
+		- wraps the Route component(s).
+		- what it does is the moment that a route inside of it finds a match in the path, it does not render anything else but that route.
+		- this is an equivalent of switch statement in JavaScript
+
+------------React Router Dom------------
+
+Route component passed the following props that can be used by the component that is being rendered in the routing process:
+
+	1. history
+		- contains the following properties:
+			1. push
+				- this allows to redirect page.
+
+				example:
+					*******************************************
+					<button onClick={ () => props.history.push('/topics') }> Topics </button>
+					*******************************************
+
+
+				* You can use Link component with "to" property (to redirect to specific route) from react-router-dom instead of push:
+
+				example code:
+					*******************************************
+					import { Link } from 'react-router-dom';
+
+					<Link to='/topics' />
+					*******************************************
+
+	2. location
+		-contains the following  properties (some):
+
+			1. pathname
+				- has the full pathname.
+
+	3. match
+		- contains the following properties:
+			1. isExact
+				- if the path is match with the route
+
+			2. params
+				- any parameters you passed on the url like an "id".
+
+			3. path
+				- the path for that route
+
+				example:
+					path: "/topics/:id"
+
+			4. url
+				- the actual url with all explicit values of all parameters.
+
+				example:
+					url: "/topics/13"
+
+
+------------withRouter------------
+
+- it is a higher order component
+* Higher Order Component
+	- is essentially a function that takes a component as an argument and returns a modified component.
+
+-is a function that gives all of the things that the route component has like: history, location, match as props.
+
+************************************************
+
+CHAPTER #6: Master Project Forms + Components
+
+
+* Any format of images like svg will be stored in a separate folder named "assets".
+
+* ReactComponent - a special syntax in React for importing SVG.
+
+--------Sign In Component----------
+
+* If you want to set state dynamically, wrap the state property in a bracket like this:
+
+	Sample Code:
+	*********************************************
+		handleChange = event => {
+			const { name, value } = event.target;
+
+			this.setState({ [name]: value });
+		}
+	*********************************************
+
+******************************************************
+CHAPTER #7: Master Project Firebase + User Authentication
+
+
+--------Adding a Project to Firebase--------
+
+1. Go to Firebase
+2. Go to Console
+3. Add project
+4. Project Overview
+5. Web
+6. Add nickname and continue
+7. Copy the Firebase configuration
+8. Go to the terminal and type the following command:
+|	npm install firebase
+9. Go to your React project and create a folder named "firebase" under src folder.
+10. Create a file with filename "firebase.utils.js".
+	
+	Write the code below:
+    **************************************
+	import firebase from 'firebase/app';
+	import 'firebase/firestore';
+	import 'firebase/auth';
+
+	const config = {
+	    apiKey: "AIzaSyC_jdWXsjJRziIRDUB9WlT_vlUldWUDKQk",
+	    authDomain: "crwn-db-ea6c0.firebaseapp.com",
+	    databaseURL: "https://crwn-db-ea6c0.firebaseio.com",
+	    projectId: "crwn-db-ea6c0",
+	    storageBucket: "crwn-db-ea6c0.appspot.com",
+	    messagingSenderId: "277706239604",
+	    appId: "1:277706239604:web:b731a488ddd0b2c3162b21",
+	    measurementId: "G-ZTT9N8HNXL"
+  	};
+
+  	firebase.initializeApp(config);
+
+	export const auth = firebase.auth();
+	export const firestore = firebase.firestore();
+
+	const provider = new firebase.auth.GoogleAuthProvider();
+	provider.setCustomParameters({ prompt: 'select_account' });
+	export const signInWithGoogle = () => auth.signInWithPopup(provider);
+
+	export default firebase;
+
+    **************************************
+11. Go to firebase page and go to Authentication.
+12. Go to Sign-in method tab
+13. Enable google provider
+14. import auth on the App.js
+15. Open and Close Authentication by writing the following:
+
+	Sample Code:
+
+	App.js
+	*****************************************
+	unsubscribeFromAuth = null;
+
+	componentDidMount() {
+		this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
+			this.setState({ currentUser: user });
+
+			console.log(user);
+		});
+	}
+
+	componentWillUnmount() {
+		this.unsubscribeFromAuth();
+	}
+	*****************************************
+------Firebase Signout-------
+16. Go to the component where your signout button will be placed.
+17. import the auth from firebase and make use of 'signOut()' function from auth.
+
+	Example:
+	*****************************************
+	<div className='options'>
+		<Link className='option' to='/shop'>
+			SHOP
+		</Link>
+		<Link className='option' to='/shop'>
+			CONTACT
+		</Link>
+		{
+		
+		//the currentUser is the prop that is passed to this component which is the current user that might be logged in at the moment.
+
+		currentUser ? 	
+			<div className='option' onClick={() => auth.signOut()}>
+				SIGN OUT
+			</div>
+		:	<Link className='option' to='/signin'>SIGN IN</Link>
+	}
+	</div>
+	*****************************************
+
+-------------Firebase Firestore-------------
+
+1. Go to firebase console.
+2. Click Database
+3. Create database
+4. Click continue and Done
+5. Start a collection (NoSQL - List of objects)
+Note:
+	The users that signin using google is still in the Authentication. It is still not stored on a database so don't forget to set it up!
+
+-------------Storing User Data In Firebase-------------
+
+-Storing data in our database (firestore).
+
+QueryReference and QuerySnapshots
+------------
+Query - is a request we make to firestore to give us something from the database.
+
+Firestore returns us two types of objects: 
+	1. references
+	2. snapshots
+
+	Of these objects, they can be either Document or Collection versions
+
+Firestore will always return us these objects, even if nothing exists at from that query.
+------------
+
+queryReference object 
+	- is an object that represents the "current" place in the database that we are querying.
+
+	We get them by calling either:
+		firestore.doc('/users/:userId');
+		firestore.collections('/users');
+
+	It does not have the actual data of the collection or document. 
+
+	It instead has properties that tell us details about it, or the method to get the Snapshot object which gives us the data we are looking for.
+
+
+
+
+... Continuation
+6. In firebase.utils.js, write the following:
+
+	firebase.utils.js
+	*******************************************
+	export const createUserProfileDocument = async (userAuth, additionalData) => {
+		if(!userAuth) return;
+
+		//this is for testing purposes if it gets the queryReference with the manually created userId
+		console.log(firestore.doc('users/1435hghhhjh'));
+	}
+	*******************************************
+	
+-------------------
+DocumentReference vs CollectionReference
+
+We use documentRef objects to perform our CRUD methods (create, retrieve, update, delete). The documentRef methods are:
+	1. .set()
+	2. .get()
+	3. .update()
+	4. .delete()
+
+We can also add documents to collections using the collectionRef object using the .add() method. 
+
+	Example:
+		collectionRef.add({value: prop})
+
+We get the snapshotObject from the referenceObject using the .get() method ie. documentRef.get() or collectionRef.get()
+
+documentRef returns a documentSnapshot object.
+collectionRef returns a querySnapshot object.
+
+
+
+
+...Continuation
+7. Under the config object, write this method which will allow to store the user data in the firebase's firestore (database):
+
+	firebase.utils.js
+	*************************************************
+	export const createUserProfileDocument = async (userAuth, additionalData) => {
+		if(!userAuth) return;
+
+		/***************************************************************
+		selects the document reference to a specific user through auth.uid that is passed on the App.js as an argument
+		***************************************************************/
+
+		const userRef = firestore.doc(`users/${userAuth.uid}`);
+
+		/****************************************************************
+		gets the document snapshot from the document reference using the .get() method
+		****************************************************************/
+
+		const snapShot = await userRef.get();
+
+		/****************************************************************
+		this creates a user data if there is no existing data on this documentRef under userRef.
+		****************************************************************/
+
+		if(!snapShot.exists) {
+			/****************************************************************
+			deconstruct the properties from auth.
+			****************************************************************/
+
+			const { displayName, email } = userAuth;
+			const createdAt = new Date();
+
+			try {
+				/*************************************************************
+				create the data using .set() method
+				*************************************************************/
+				await userRef.set({
+					displayName,
+					email,
+					createdAt,
+					...additionalData
+				});
+			}
+			catch(error) {
+				console.log('error creating user', error.message);
+			}
+		}
+		/***************************************************************
+		returns the queryReference object for future used on the App.
+		***************************************************************/
+		return userRef;
+	}
+
+-----------Storing User Data In Our App-----------
+
+-Storing data to the "state" of our application so we can use it in our app.
+
+---------------------
+
+DocumentSnapshot vs. QuerySnapshot
+
+DocumentSnapshot
+	- We get a documentSnapshot object from our documentReference
+	object.
+	- The documentSnapshot object allows us to check if a document exists at this query using the .exists property which returns a boolean.
+	- We can also get the actual properties on the object by calling
+	the .data() method, which returns us a JSON object of the document. 
+
+QuerySnapshot
+	- We get a querySnapshot object from our collectionReference object.
+	- We can check if there are any documents in the collection by calling the .empty property which returns a boolean.
+	- We can get all the documents in the collection by calling the .docs
+	property. It returns an array of our documents as documentSnapshot
+	objects. 
+
+
+...Continuation
+8. In App.js write this code:
+	
+	App.js
+	********************************************
+	componentDidMount() {
+		this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+			/******************************************
+			If user authentication object exists, pass the auth to createUserProfileDocument() function and set the current user state to the signed in user details.
+			******************************************/
+			if(userAuth) {
+				const userRef = await createUserProfileDocument(userAuth);
+
+				userRef.onSnapshot(snapShot => {
+					this.setState({
+						currentUser: {
+							id: snapShot.id,
+							...snapShot.data()
+						}
+					});
+				});
+			}
+			else {
+				/******************************************
+				If user authentication object is null, then set the current user state to null;
+				******************************************/
+
+				this.setState({ currentUser: userAuth });
+			}
+		});
+	}
+	********************************************
+
+----------Sign Up Component---------------
+
+createUserWithEmailAndPassword() method
+	- creates a new user account associated with the specified email address and password.
+	- this method is a property of firebase auth which can be called and used directly.
+
+
+
+...Continuation
+9. In SignUp component write this code for the handleSubmit function that handles onSubmit():
+	
+	sign-up.component.jsx
+	*****************************************************
+	handleSubmit = async event => {
+		event.preventDefault();
+
+		/*********************
+		Deconstruc the properties from the state object
+		**********************/
+
+		const { displayName, email, password, confirmPassword } = this.state;
+
+		/*********************
+		Checks if passwords match
+		**********************/
+
+		if(password !== confirmPassword) {
+			alert("passwords don't match");
+			return;
+		}
+
+		try {
+			/*********************
+			Deconstucts the user property returned by auth after creating a user using .createUserWithEmailAndPassword() built-in auth method.
+			**********************/
+
+			const { user } = await auth.createUserWithEmailAndPassword(email, password);
+
+			/*********************
+			Storing data to the firestore
+			*********************/
+			await createUserProfileDocument(user, { displayName });
+
+			//This will clear the form fields
+			this.setState({
+				displayName: '',
+				email: '',
+				password: '',
+				confirmPassword: ''
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	};
+	*****************************************************
+
+-------------Sign In With Email and Password-----------
+
+signInWithEmailAndPassword() method
+	- asynchronously signs in using email and password
+	- this method is a property of firebase auth which can be used directly.
+
+
+
+...Continuation
+10. In SignIn component write the following for the handleSubmit method:
+
+	sign-in.component.jsx
+	*************************************************************
+	handleSubmit = async event => {
+		event.preventDefault();
+
+		const { email, password } = this.state;
+
+		try {
+			/*************************************************
+			passing email and password to firebase auth .signInWithEmailAndPassword() method with await which waits for the promised to be returned
+			***************************************************/
+
+			await auth.signInWithEmailAndPassword(email, password);
+
+			/*************************************************
+			clears the form fields when the form submits
+			***************************************************/
+
+			this.setState({ email: '', password: '' });
+
+		} catch (error) {
+			console.log(error);
+		}
+		
+	}
+	*************************************************************
+***************************************************
+CHAPTER #8: Master Project Redux 1
+
+--------Redux Introduction----------
+
+- is a state management system to manage the application's large state as it grows and become more complex to handle.
+
+--------Redux Concepts----------
+
+Why Redux?
+	- Good for managing large state
+	- Useful for sharing data between components
+	- Predictable state management using the 3 principles:
+		1. Single source of truth
+		2. State is read only
+		3. Changes using pure functions
+
+Redux Flow:
+Action -> Root Reducer -> Store -> DOM changes
+
+	Definitions:
+		Action
+			- any actions on the app
+		Root Reducer 
+			- is a pure function that receives an input which is the action that creates an output -- which is the store (state).
+		Store
+			- the "state" in redux.
+
+Redux uses an Architectural Pattern called:
+
+Flux Pattern:
+Action -> Dispatcher -> Store -> View
+
+- it makes sure to solve problems in a logical sense and in an organzied fashion. 
+
+	Pattern Description:
+		- the pattern has an action which will be dispatch with a dispatcher to the store which updates the view.
+		- this pattern is one-way data flow that is if the view gets updated, everything will start to the action and the process continues to changing the view.
+		
+Caveat:
+	We keep a little bit of React state in a component.
+	Redux doesn't replace the "this.state" completely
+		Note: 
+			This is a common pattern to keep only important state in Redux Store while keeping UI specific state like form inputs in "this.state".
+
+--------Redux In Our Application----------
+
+Redux solves the problem of prop-drilling.
+
+Prop-drilling
+	- to pass the state from Component to the child components who need it even though those component that is part of the tunneling doesn't need it.
+
+	Diagram:
+		App Component
+			state: {
+				currentUser: {}
+			}
+		------------------------------------------
+			|
+			Pass currentUser as prop
+			V
+			V
+		------------------------------------------
+
+		Header Component 
+		(has the prop but doesn't really need it, but just passed it to the Cart Component who really needs it).
+
+		------------------------------------------
+			|
+			Pass currentUser as prop
+			V
+			V
+		------------------------------------------
+
+		Cart Component 
+		(the component who needs the currentUser)
+
+Redux Overall Flow:
+
+									----------------------------------------------------Pass State As Props------------------------------------------------------
+									|																		  |                       |                         |
+									|																		  |						  |					        |
+									|																		  |						  |							|
+  -----------------------------> Root Reducer <------------------------------								  |						  |							|
+  |			                    (App State)  								|								  |						  |							|
+  |									^										|								  |						  |							|
+  |									|										|								  |						  |							|
+  |									|										|								  V 					  V 					    V
+Home Reducer					Shop Reducer						 User Reducer                         Component               Component               Component
+(Slice of State)				(Slice of State)					(Slice of State)                          |                       |                         |
+	^								^										^								  |					      |							|
+	|								|										|								  |						  |							|
+	|								|										|								  |					      |							|
+Update Reducer				 Update Reducer						     Update Reducer							  |						  |							|
+	|								|										|								  |						  |							|
+	|								|										|								  |						  |							|
+    -------------------------------------------------------------------------								  |						  |							|
+    								|																		  |						  |							|
+    								|																		  v						  v 						v
+    								------------------------------------------------------------Actions <---------------------------------------------------------
+
+
+
+
+
+-----------Redux Actions and Reducers------------
+
+Redux Actions in Diagram:
+
+	---------------Pass currentUser as prop--------------------
+	|														  |
+	|														  |
+	|														  V
+	|												      Component
+	|														  |
+	|														  |
+User Reducer											  	  |
+{											trigger action -> SET_CURRENT_USER
+	currentUser: {}										      |									
+}														      |
+	^														  |
+	|														  |
+	|														  V
+	|												{type: string, payload: any}
+	|														  |					
+	|														  |
+	----------Update User Reducer with payload-----------------
+
+	Description:
+		- When action takes place from a component, it triggers an action through a
+		function with parameters: type, payload.
+		- This function will update the reducer of that specific component 
+		(e.g. User Reducer - which holds the state of the currentUser). which will then
+		change the store and make changes on the View.
+
+---------------
+Root Reducer content Sample:
+	{
+		User Reducer: {},
+		Home Reducer: {},
+		Cart Reducer: {}
+	}
+
+	Description:
+		- The root reducer holds all the App's reducers in an object.
+		- Each reducer is in a form of object also.
+
+-----------
+Reducer Sample Code:
+	***********************************************
+	/* 
+	The currentState is the state before an action takes place
+	*/
+
+	const userReducer = (currentState, action) => {
+		switch(action.type) {
+			case 'SET_CURRENT_USER':
+
+				/*
+				Returns a new object to rerender the component
+				*/
+
+				return {
+					...currentState,
+					currentUser: action.payload
+				};
+
+			default:
+				return currentState;
+		}
+	}
+	***********************************************
+	Explanation:
+		- The reducer is a function that takes a state and it takes an action.
+		- The state is the previous state that it was in. It is the state before the new action is going to update it. 
+		- This function returns an new object and that object is going to be the new state of our User Reducer.
+		- It uses a switch statement to check the action's type.
+		- The reason why it returns a new object is because we want the component to re-render. That is how React Components works.
+		- React Components only re-render if their props are different and the only way that the props are different is if the object that it has is NEW.
+
+-----------Setting Up Redux-------------
+
+Middleware 
+	- is a piece of code that gets the action before the root reducer.
+	- receives these action objects before they reach the root reducer.
+
+	Redux Logger Middleware:
+		- a middelware that logs out actions that gets fired.
+		- a visual representation of what it is that actions do.
+
+1. Install redux, react-redux, and redux-logger middleware:
+| npm install redux react-redux redux-logger
+
+2. Go to index.js. This is where we import react-redux that will give our application access to not only the store but also those reducers that we also going to write.
+
+Provider
+	- a component from react-redux.
+	- is a component that we want to wrap around the entire application because we want everything inside to have access to this store object that we get from redux.
+	- is a component that is the parent of everything inside of our application.
+
+	Codes:
+	index.js
+	*************************************
+	import { Provider } from 'react-redux';
+
+	ReactDOM.render(
+		<Provider>
+			<BrowserRouter>
+				<App />
+			</BrowserRouter>
+		</Provider>
+		, document.getElementById('root'));
+	*************************************
+
+3. Make a folder named "redux" under src folder.
+	- All the code related to redux will be stored here.
+
+4. Write a file named "root-reducer.js" under redux folder.
+	- this is where the actual code that combines all of our other states together is placed.
+
+5. Write each reducer in a separate file under its own folder name:
+	Example Format for User Reducer:
+		redux/user/user.reducer.js
+
+Note: 
+	- When we actually fire the state for the first time, it's going to be nothing. 
+	- We need to set an initial state for this reason.
+
+Caveat:
+	- Every single reducer gets every single action that ever gets fired even those actions are not related to this reducer.
+
+6. One of your reducer might look like this:
+
+	Sample Code:
+
+	user.reducer.js
+	**********************************************
+	const INITIAL_STATE = {
+		currentUser: null
+	}
+
+	const userReducer = (state = INITIAL_STATE, action) => {
+		switch (action.type) {
+			case 'SET_CURRENT_USER':
+				/* The new user is stored in the payload. */
+				return {
+					...state,
+					currentUser: action.payload
+				}
+			default:
+				return state;
+		}
+	}
+
+	export default userReducer;
+	**********************************************
+
+7. Go to your root-reducer.js and import your reducers here to combine them altogether by using the "combineReducers" component from redux.
+
+	Sample Code:
+
+	root-reducer.js
+	**********************************************
+	import { combineReducers } from 'redux';
+
+	import userReducer from './user/user.reducer';
+
+	const rootReducer = combineReducers({
+		user: userReducer
+	});
+	export default rootReducer;
+	**********************************************
+
+8. Create a file named store.js under redux folder
+   Write the following code:
+
+   		store.js
+   		*******************************************
+   		import { createStore, applyMiddleware } from 'redux';
+   		import logger from 'redux-logger';
+
+   		import rootReducer from './root-reducer';
+
+   		/*
+   		Middlewares are stored in an array so if another middleware will be used, it will be added in the array.
+   		*/
+
+   		const middlewares = [logger];
+
+   		/*
+   		We instantiated the store using the createStore function that accepts root reducer and applyMiddlware function as arguments.
+
+   		The applyMiddleware function allow us to apply middleware in our store.
+   		*/
+
+   		const store = createStore(rootReducer, applyMiddleware(...middlewares));
+
+   		export default store;
+
+   		*******************************************
+
+   		Note:
+   			- We apply middleware in our store so whenever actions gets fired or dispatched, we can catch them and then display them.
+   			- Middleware is just functions that receive actions in and then do something with them and then pass them out into the root reducer.
+   			- logger is a middleware imported from redux-logger.
+
+9. Go to index.js and import and pass the store as prop to the Provider component.
+
+	- Moreover, we can dispatch function to the store or we can actually pull values off of the store and into our components as we pass the store.
+
+	index.js
+	*********************************************
+	import store from './redux/store';
+	*********************************************
+
+10. Create a file named "user.actions.js".
+	Note:
+		- All codes in here are used as an action creator which will be used by the reducer;
+
+	Sample Code:
+	user.actions.js
+	*********************************************
+	export const setCurrentUser = user => ({
+		type: 'SET_CURRENT_USER',
+		payload: user
+	});
+	*********************************************
+
+...continuation to the next topic.
+
+---------connect() and mapStateToProps-----------
+
+...Continuation
+
+11. Locate the component that needs redux store and import connect into that component.
+
+	Sample Code:
+	header.component.jsx
+	*****************************************
+	import { connect } from 'react-redux';
+
+	*****************************************
+
+	Sample Scenario:
+		- We know conceptually that we need to bring our user reducer as current user value into where we need it which will be our header component because it is still getting the current user from app.js and we don't want that.
+		- What we want is to pull that current user value off of our reducer.
+		- In order to make that happen, we need to import connect.
+
+	Notes:
+		Connect 
+			- is a higher-order component that lets us modify our component to have access to things related to redux.
+			- connect's first argument is going to be the function that allows to access the states. It is the state being our reducer -- our root reducer to be specific.
+
+		Higher-Order Components
+			- are just functions that take components as arguments and then return you a new souped-up component.
+
+12. Do the following to access things related to redux with connect.
+
+	Sample Code:
+	header.component.jsx
+	******************************************
+	const mapStateToProps = (state) => ({
+		currentUser: state.user.currentUser
+	});
+
+	export default connect(mapStateToProps)(Header);
+	******************************************
+
+	mapStateToProps
+		- it returns an object where the name of the property will be the actual property (props) that we want to pass in and then the value will be the value.
+		- it accepts an argument which is a state object. This state is the root reducer.
+		- this function will be passed as the first argument of "connect".
+
+13. [Optional]
+	Go to App.js and remove the prop that is passed in to the Header component because redux has been implemented it there and there is no need for that prop that results to prop-drilling.
+
+
+...continuation
+-----------mapDispatchToProps-----------
+
+...Continuation
+Here we need to update our app component so that it's able to update the reducer value with the new "setCurrentUser" action that is made.
+
+14. Go to App.js and import connect so this component can access things related to redux.
+
+	Code:
+	App.js
+	*****************************************
+	import { connect } from 'react-redux';
+
+	class App...{
+	...
+	}
+	const mapDispatchToProps = (dispatch) => ({
+		setCurrentUser: user => dispatch(setCurrentUser(user))
+	})
+
+	export default connect(null, mapDispatchToProps)(App);
+	*****************************************
+
+	Notes:
+		- The first argument of connect is "mapStateToProps" and the second argument is "mapDispatchToProps".
+		- The first argument has null value because it doesn't need any "state to props" from our reducer.
+		- The second argument is the mapDispatchToProps which is a function that gets this dispatch property and similarly will return an object where the prop name will be whatever prop we want to pass in that dispatches the new action that we're trying to pass which is "setCurrentUser".
+
+15. import the setCurrentUser from user.action.js so it can be dispatch to pass the action to the reducer.
+
+	Sample Code:
+	App.js
+	*******************************************
+	import { setCurrentUser } from './redux/user.action';
+
+	class App...{
+	...
+	}
+	const mapDispatchToProps = (dispatch) => ({
+		setCurrentUser: user => dispatch(setCurrentUser(user))
+	})
+
+	export default connect(null, mapDispatchToProps)(App);
+	*******************************************
+	Notes:
+		- What will end up returning from the function is the "setCurrentUser" that will become one of the Props of this component. This property is a function that gets the user object and then calles the "dispatch" function.
+		- dispatch()
+			- it is a way for redux to know that whatever object is passing to redux is going to be an action object that it is going to pass to every reducer.
+			- inside dispatch, the action will be called and going to pass that data object -- user object(as an example).
+			- We are invoking setCurrentUser with the user (the data object) that will then be used as the payload in our reducer.
+
+	- Remove the constructor because it is not needed anymore to set the state of our app.
+
+	- Check the console and you'll see the redux-logger logging the action that gets fired. There are three sections in redux-logger:
+
+		1. prev state
+			- it is the state before the action gets fired.
+
+		2. action
+			- it is the action that gets fired.
+
+		3. next state
+			- is the state after the action modified the reducer.
+
+------------User Redirect and User Action Types---------
+
+Scenario 1:
+	If the user signs in, they are still able to access the signin page which we don't want to happen because they are still able to trigger any of the code in our signin and mess with the firebase flow and we don't want that.
+
+Solution:
+	- When the user signs in, we redirect the user to the home page.
+	- We need 2 things to implement: 
+		1. Redirect Component
+		2. Current user redux state
+
+Implementation:
+	1. import the Redirect component from react-router-dom library.
+
+	2. write the mapStateToProps function just like in the header component.
+
+		Sample Code:
+		App.js
+		***********************************
+		import { Redirect } from 'react-router-dom';
+
+		class ... {
+		...
+		}
+
+		const mapStateToProps = ({ user }) => ({
+			currentUser: user.currentUser
+		});
+
+		export default connect(mapDispatchToProps, mapStateToProps)(App);
+
+		***********************************
+		Notes:
+			- On the signin route, put on an exact property and remove the component property.
+			- Put on a render property like this:
+
+			App.js
+			**************************************************
+			<Route 
+				exact 
+				path='/signin' 
+				render={() => 
+					currentUser ? 
+						<Redirect to='/'/> 
+					:	<SignInAndSignUpPage />
+				}
+			/>
+			**************************************************
+			Explanation:
+				When the currentUser data is available and not null, after the user signs in, it will redirect to the home page else it will go back to Signin and Signup Page.
+
+...Continuation
+Scenario 2:
+	- In user.actions.js, the "type" property is a hard-coded string. In our reducer we're referencing the same string but the best practice is to make sure that it's consistent in any place that might be referencing this string.
+
+16. Create a file named "user.types.js" under user folder and create the string constant under variable name called "UserActionTypes" and export it just like this:
+	Code:
+	user.types.js
+	********************************************
+	export const UserActionTypes = {
+		SET_CURRENT_USER: 'SET_CURRENT_USER'
+	};
+	********************************************
+
+	and import this to user.reducer.js and user.action.js like this:
+
+	Code:
+	user.actions.js and user.reducer.js
+	********************************************
+	import { UserActionTypes } from './user.types'; 
+
+	const userReducer = (state = INITIAL_STATE, action) => {
+		switch (action.type) {
+			case UserActionTypes.SET_CURRENT_USER:
+				...
+		}
+	}
+	********************************************
+	
+
+---------Implementing Redux in Cart-----------
+
+Scenario:
+	Toggling Component (hide and show) when user clicks on it.
+
+Solution 1 (Toggled component is only used in one component)
+	- When the component only toggles in only one component, then just do a local state with property "hidden" of boolean value.
+	- Define a function which will handle the event that will change the state.
+	- Implement a ternary operator which will check if the "hidden" state property is true or false.
+	  If it is true then just return "null" else, return the component (that is to display that component).
+
+Solution 2 (Toggled component is used by more than one component)
+	- Use redux to dispatch the action which will toggle the value of the store to set "hidden" property to true or false.
+
+	Sample Code:
+
+	redux codes:
+	------------
+		cart.actions.js
+		**************************************
+		import { CartActionTypes } from './cart.types';
+
+		export const toggleCartHidden = () => ({
+			type: CartActionTypes.TOGGLE_CART_HIDDEN
+		});
+		**************************************
+
+		...
+
+		cart.reducer.js
+		**************************************
+		import { CartActionTypes } from './cart.types';
+
+		const INITIAL_STATE = {
+			hidden: true
+		};
+
+		const cartReducer = (state = INITIAL_STATE, action) => {
+			switch (action.type) {
+				case CartActionTypes.TOGGLE_CART_HIDDEN:
+					/*
+						Returning the action's payload is optional. The "hidden" property toggles to true or false every time the action gets dispatch.
+					*/
+					return {
+						...state,
+						hidden: !state.hidden
+					}
+				default:
+					return state;
+			}
+		};
+		export default cartReducer;
+		**************************************
+
+	components code:
+	----------------
+
+		cart-icon.component.jsx
+		**************************************
+		const CartIcon = ({ toggleCartHidden }) => (
+			<div className='cart-icon' onClick={toggleCartHidden}>
+				<ShoppingIcon className='shopping-icon'/>
+				<span className='item-count'> 0 </span>
+			</div>
+		);
+
+		/*
+			Dispatches the action that will update the cart reducer
+		*/
+
+		const mapDispatchToProps = dispatch => ({
+			toggleCartHidden: () => dispatch(toggleCartHidden())
+		});
+
+		export default connect(null, mapDispatchToProps)(CartIcon);
+		**************************************
+
+		...
+
+		header.component.jsx
+		**************************************
+		const Header = ({ currentUser, hidden }) => (
+			<div className='header'>
+				...
+
+				/*
+					If hidden is false, it will display the CartDropdown component
+				*/
+
+				{ hidden ? 
+					null : (
+						<CartDropdown />
+					)
+				}
+				
+			</div>
+		);
+
+		const mapStateToProps = ({user: { currentUser }, cart: { hidden } }) => ({
+			currentUser,
+			hidden
+		});
+
+		export default connect(mapStateToProps)(Header);
+		**************************************
+
+
+-----------Cart Items Management-----------
+Scenario:
+	Clicking "Add to cart" button to add item(s) to the cart items in redux.
+
+Solution:
+	1. Handle the click event when user clicks on the "Add to cart" button.
+	
+	2. Managing the CartItems list:
+		1. Initialize the value of cartItems to empty array.
+		2. To store items to the cartItems, just do something like this:
+			Sample code:
+
+			cart.reducer.js
+			*******************************************************
+			const INITIAL_STATE = {
+				hidden: true,
+				/*
+					Cart items initialization to empty array.
+				*/
+				cartItems: []
+			};
+
+			const cartReducer = (state = INITIAL_STATE, action) => {
+				switch (action.type) {
+					...
+					case CartActionTypes.ADD_ITEM:
+						/*
+							Spread the current lists of cartItems and then add the new payload.
+							This will allow to add new items to cartItems (with existing items)
+						*/
+						return {
+							...state,
+							cartItems: [...state.cartItems, action.payload]
+						}
+					default:
+						return state;
+				}
+			};
+			export default cartReducer;
+			*******************************************************
+
+
+
+
+
