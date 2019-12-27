@@ -1715,7 +1715,7 @@ Solution 2 (Toggled component is used by more than one component)
 
 
 -----------Cart Items Management-----------
-Scenario:
+Scenario 1:
 	Clicking "Add to cart" button to add item(s) to the cart items in redux.
 
 Solution:
@@ -1754,6 +1754,219 @@ Solution:
 			};
 			export default cartReducer;
 			*******************************************************
+
+Scenario 2:
+	Grouping multiple items (the same item) in one object and add a quantity property which holds the item's quantity.
+
+Solution:
+	1. Use the utility function ".find()" to find if an item already exist in the cartItems list.
+
+		Note: The .find() returns undefined if no item is found, else, it will return that item that meets the condition. 
+
+		Sample Code:
+
+		cart.utils.js
+		*******************************************
+		export const addItemToCart = (cartItems, cartItemToAdd) => {
+			const existingCartItem = cartItems.find(
+				cartItem => cartItem.id === cartItemToAdd.id
+			);
+		};
+		*******************************************
+
+	2. Store it in a variable and use this variable to check if the new cart item to be added in the cart items existed. If yes, then use the .map() utility function to return new object with the "quantity" property which holds the value of the existing quantity of an item:
+
+		Sample Code:
+
+		cart.reducer.js
+		*******************************************
+		...
+
+		if(existingCartItem) {
+			return cartItems.map(cartItem => 
+				/*
+					If the new item exist in the cartItems, it will return a new object with the cartItem properties with the new quantity of the item.
+				*/
+				cartItem.id === cartItemToAdd.id
+					? { ...cartItem, quantity: cartItem.quantity + 1 }
+					: cartItem
+			);
+		}
+		*******************************************
+
+	3. If existingCartItem is undefined (which means that there is no item found with the .find() function),
+	then just return the current cart item with the "quantity" property with a value of "1" as a starting value of the first item.
+
+		Sample Code:
+
+		cart.reducer.js
+		*******************************************
+		...
+
+		return [...cartItems, { ...cartItemToAdd, quantity: 1 }];
+		*******************************************
+
+	* Data comparison between grouped cart items and ungrouped cart items.
+
+		Ungrouped items:
+		----------------
+			cartItems: Array(4)
+				0: {id: 1, name: "Brown Brim", imageUrl: "https://i.ibb.co/ZYW3VTp/brown-brim.png", price: 25}
+				1: {id: 1, name: "Brown Brim", imageUrl: "https://i.ibb.co/ZYW3VTp/brown-brim.png", price: 25}
+				2: {id: 1, name: "Brown Brim", imageUrl: "https://i.ibb.co/ZYW3VTp/brown-brim.png", price: 25}
+				3: {id: 1, name: "Brown Brim", imageUrl: ...}
+
+		Grouped items:
+		--------------
+			cartItems: Array(1)
+				0:  {id: 1,
+					name: "Brown Brim",
+					imageUrl: "https://i.ibb.co/ZYW3VTp/brown-brim.png",
+					price: 25,
+					quantity: 4}
+
+-----------Selectors in Redux-------------
+
+Scenario:
+	Displaying the total number of items added to cart (total items) on the cart icon.
+
+Solution: 
+	Use the selector method .reduce() to pull off of the quantity from the cart items and add all quantity values of items into a single value (total quantity value).
+
+	Notes:
+		.reduce()
+			- reduces the array to a single value.
+			- The return value of the function is stored in an accumulator (result/total).
+			- does not execute the function for array elements without values.
+			- this method does not change the original array.
+
+	Sample Code:
+
+	cart-icon.component.jsx
+	******************************************
+	const CartIcon = ({ toggleCartHidden, itemCount }) => (
+		<div className='cart-icon' onClick={toggleCartHidden}>
+			<ShoppingIcon className='shopping-icon'/>
+			<span className='item-count'>{itemCount}</span>
+		</div>
+	);
+
+	const mapStateToProps = ({ cart: { cartItems } }) => ({
+		itemCount: cartItems.reduce((acc, cartItem) =>
+			acc + cartItem.quantity
+		, 0)
+	});
+
+	export default connect(mapStateToProps, mapDispatchToProps)(CartIcon);
+	******************************************
+
+	Caveat:
+		- Whenever any reducer updates, it returns a new object that will rerender the component.
+		- Whenever the reducer returns a new object, redux recomposes and rebuilds the entire state object's "mapStateToProps" and is actually getting called every single time which is always passing in new props to our components.
+
+		Note:
+			reducer() is always returning a new value because it doesn't know that the cart items coming in might be the exact same (value) which is NOT good for performance because we don't want to rerender our component every time the state changes ESPECIALLY if those state changes don't actually modify the parts of the state that our component cares about.
+
+	Caveat's Solution:
+		- Store or cache the value of what our selector(reducer()) is using to compute it's value.
+		- If the cart item values don't actually change right and if the output of the selector doesn't change, we don't want to rerender our component -- this is called "Memoization"
+
+		Memoization
+			- is the caching of the selectors value and can be achieved using a library called "Reselect".
+			- other benefits of Reselect library is it separates the selectors and make them reusable.
+
+---------Reselect Library--------
+
+1. Install Reselect library with the command:  
+
+	| npm install reselect
+
+2. create a new file in a format like this:
+
+	redux/cart/cart.selectors.js
+
+	Note: 
+		This selector is used related to cart.
+
+3. Import "createSelector" from reselect.
+	
+	Sample Code:
+
+	cart.selectors.js
+	****************************************
+	import { createSelector } from 'reselect';
+	****************************************
+
+	2 Types of Selectors:
+		1. Input selector
+			- doesn't use the "createSelector".
+			- it is a function that gets the whole state and just returns a slice of it (e.g. pulling off the cart from the cartReducer).
+
+			Sample Code:
+			cart.selectors.js
+			**********************************
+			import { createSelector } from 'reselect';
+
+			/*
+				Selects the cart property from the rootReducer which will be used as an input for the Output selector.
+			*/
+			const selectCart = state => state.cart
+			**********************************
+
+		2. Output selector
+			- does use input selectors and "createSelectors" to build themselves.
+			- it is an instance of createSelector which accepts two arguments:
+				Arguments:
+					1: Collection of input selectors (in array).
+					2: A function that will return the value we want out of the selector. 
+					- What we're going to get in its parameters is actually each output of the input selectors in the array but in the order that those selectors were written. 
+					- the created selector using "createSelector" is now called a "memoir selector".
+
+			Sample Code:
+			
+			cart.selectors.js
+			************************************
+			import { createSelector } from 'reselect';
+
+			...
+			/*
+				Selects the cart items and pulls cart items off out from the cart object and store it in to selectCartItems variable.
+			*/
+			export const selectCartItems = createSelector(
+				[selectCart],
+				cart => cart.cartItems
+			);
+
+			/*
+				Get the reduce value of cart items which is the total quantity of all cart items.
+			*/
+			export const selectCartItemsCount = createSelector(
+				[selectCartItems],
+				cartItems =>
+					cartItems.reduce(
+						(acc, cartItem) =>
+							acc + cartItem.quantity,
+						0
+					);
+			);
+			************************************			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
