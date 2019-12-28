@@ -2080,3 +2080,35 @@ Acquired Ideas:
 	);
 	*************************************************
 
+---------Remove Items from Cart-----------
+
+* Remember that when you deep destructure the prop, you cannot access the properties of that prop.
+	
+	Sample Code:
+	checkout-item.component.jsx
+	****************************************************
+	/*
+		The cartItem has no access to its property because it has been destructured.
+	*/
+	const CheckoutItem = ({ cartItem: { name, quantity, price, imageUrl } }) => (
+
+	);
+
+	export default CheckoutItem;
+
+	...
+
+	/*
+		The cartItem has access to its property with this method:
+	*/
+	const CheckoutItem = ({ cartItem }) => (
+
+		const { name, quantity, price, imageUrl } = cartItem;
+		
+		return (
+			...
+		)
+	);
+
+	export default CheckoutItem;
+	****************************************************
