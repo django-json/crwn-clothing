@@ -1910,11 +1910,11 @@ Solution:
 			/*
 				Selects the cart property from the rootReducer which will be used as an input for the Output selector.
 			*/
-			const selectCart = state => state.cart
+			const selectCart = state => state.cart;
 			**********************************
 
 		2. Output selector
-			- does use input selectors and "createSelectors" to build themselves.
+			- does use input selectors and "createSelector" to build themselves.
 			- it is an instance of createSelector which accepts two arguments:
 				Arguments:
 					1: Collection of input selectors (in array).
@@ -1951,24 +1951,132 @@ Solution:
 			);
 			************************************			
 
+4. Import the selector to the component that needs it. 
+
+	Sample Code:
+	cart-dropdown.component.jsx
+	****************************************
+	import { selectCartItems } from '../../redux/cart/cart.selectors';
+
+	...
+
+	/*
+		Calling the selectCartItems selector and passing the whole state as an argument 
+		and Passing the result to the cartItems property which holds all the items from the cart which will also be used as a prop of the component.
+	*/
+	const mapStateToProps = (state) => ({
+		cartItems: selectCartItems(state)
+	});
+	****************************************
+
+	Note:
+		The state that is passed to the selector will be referenced to the input selector which will then select the cart from the state and passed it to output selector that needs it.
 
 
+----------More on Selector------------
+
+createStructuredSelector
+	- imported from reselect library
+	- passed the top level state that we get into each subsequent selector
+
+	Sample Code:
+	header.component.jsx
+	*************************************
+	import { createStructuredSelector } from 'reselect';
+
+	...
+
+	/*
+		FROM:
+	*/
+	const mapStateToProps = state => ({
+		currentUser: selectCurrentUser(state),
+		hidden: selectCartHidden(state)
+	});
 
 
+	/*
+		TO:
+	*/
+	const mapStateToProps = createStructuredSelector({
+		currentUser: selectCurrentUser,
+		hidden: selectCartHidden
+	});
+	*************************************
 
+	Note:
+		When you start using createStructuredSelector, use it to all components with mapStateToProps even if there is only one selector used in the component so it would be easy to add another selector since it is already setup.
 
+--------Checkout Page------------
 
+Six types of falsy values:
+	1. 0
+	2. false
+	3. undefined
+	4. null
+	5. NaN
+	6. ""
 
+	Note:
+		All this six types will evaluate to false.
 
+Default values:
+	For objects: null
+	For numbers: zero
+	For string: empty string
 
+* You can check if an array has a value by getting the length of the array itself using .length.
+	Example:
+		array.length ? 
+			"Array has value"
+		:   "Array is empty";
 
+Acquired Ideas:
+	1. use "Link" component from 'react-router-dom' to route user to other pages with links like navigation links.
 
+	2. use "withRouter" component from 'react-router-dom' to route user to other pages with buttons and anything that is not a link. Use the history.push() to push new route.
 
+		Sample Code:
 
+		*******************************************
+		import { withRouter } from 'react-router-dom';
 
+		const AnyFunction = (history) => (
+			<button
+				onClick={() => history.push('/checkout')}
+			> 
+			GO TO CHECKOUT 
+			</button>
+		);
 
+		export default withRouter(connect()(AnyFunction))
+		*******************************************
 
+		Note:
+			withRouter should be the outer higher-order component before connect();
+			- The order between withRouter and connect matters.
 
+-----------Dispatch Action Shorthand-------------
 
+* If the mapDispatchToProps or NULL value is not passed as the second argument of connect(), redux is actually passing dispatch by default. In other words, you have the access to all already dispatched actions in the App.
 
+	Sample Code:
+	*************************************************
+	import { someReduxAction } from '../../redux/cart/cart.actions';
+
+	const CartDropdown = ({ dispatch }) => (
+		<div>
+			<button
+				onClick={() => {
+					/*
+						You can use dispatch without writing unnecessary mapDispatchToProps to use dispatch() to dispatch an action to the reducer.
+					*/
+					dispatch(someReduxAction())
+				}}
+			>
+			Click Me
+			</button>
+		</div>
+	);
+	*************************************************
 
