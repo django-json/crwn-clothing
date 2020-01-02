@@ -2320,6 +2320,8 @@ Data Normalization
 		createSelector(
 			[selectCollections],
 			collections => 
+				/* .find() is good for small items in an array but reduced performance with large elements because it loops through the whole list until it finds the exact item which will then waste time.*/
+
 				collections.find(
 					collection =>
 						collection.id === COLLECTION_ID_MAP[collectionUrlParam]
@@ -2339,7 +2341,7 @@ Data Normalization
 --------Data Flow In the App------------
 
 Scenario:
-	Displaying list of items in an object on the app.
+	Displaying list of items from an object on the app.
 
 	Example:
 		const collections = {
@@ -2375,8 +2377,97 @@ Solution:
 	Note:
 		We want to get all the keys and map over that array of keys so we get the value of our collections object at that key which will give us an array of items that we're trying to get.
 
+********************************************
 
+CHAPTER #13. Master Project Stripe Payments Part 1
 
+----------Stripe Integration--------------
+
+Stripe - an API that handles online payments.
+
+1. Install stripe with the command:
+|	npm install react-stripe-checkout
+
+	- it gives the react bound version of the checkout button that stripe provides that opens up that component that we saw what we want.
+2. Create a new component named "stipe-button" 
+3. Import StripeCheckout component from 'react-stripe-checkout';
+
+	Sample Code:
+
+	stipe-button.component.jsx
+	********************************************
+	import StripeCheckout from 'react-stripe-checkout';
+	********************************************
+4. Do the following code to define the component:
+
+	stipe-button.component.jsx
+	********************************************
+	import StripeCheckout from 'react-stripe-checkout';
+
+	const StripeCheckoutButton = ({ price }) => {
+
+		/*Converts price in dollar to cents*/
+		const priceForStripe = price * 100
+
+		const publishableKey = '[your stripe publishable key]'
+
+		onToken = token => {
+			console.log(token);
+			alert('Payment Successful');
+
+			/*With the token you would pass this to your back-end which then creates the charge. You can use fetch() for this*/
+		};
+
+		/*Returns the StripeCheckout Component*/
+		return(
+			<StripeCheckout
+				label='Pay Now'
+				name='CRWN Clothing Ltd.'
+				billingAddress
+				shippingAddress
+				image='https://svgshare.com/i/CUz.svg'
+				description={`Your total is $${price}`}
+				amount={priceForStripe}
+				panelLabel = 'Pay Now'
+				token={onToken}
+				stripeKey={publishableKey}
+			/>
+		)
+	}
+
+	export default StripeCheckoutButton;
+	********************************************
+	Notes:
+		StripeCheckout Component takes a bunch of different possible properties that enable or disable different features that we have access to inside of the CheckoutDropdown component.
+			- to check all the properties, go to the stripe github repo.
+
+5. Import the newly created Component to the component that needs it:
+
+	Sample Code:
+
+	checkout.component.jsx
+	*****************************************
+	import StripeCheckoutButton from '../../components/stripe-button/stripe-button.component';
+
+	const CheckoutPage = ({ cartItems, total }) => (	
+		<div className='checkout-page'>
+
+			...
+
+			<StripeCheckoutButton price={total} />
+		</div>
+	);
+
+	export default CheckoutPage;
+	*****************************************
+
+----------Finishing Touch the Project----------
+
+Changing the Favicon and the Title of the Tab:
+
+1. Go to index.html under the public folder.
+2. Change the title there with the App's.
+3. Replace the favicon under public folder.
 
 
 
