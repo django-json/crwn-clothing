@@ -20,7 +20,7 @@ class SignIn extends Component {
 		event.preventDefault();
 
 		const { email, password } = this.state;
-
+		
 		try {
 			//passing email and password to firebase auth .signInWithEmailAndPassword() method with await which waits for the promised to be returned
 			await auth.signInWithEmailAndPassword(email, password);
@@ -70,6 +70,7 @@ class SignIn extends Component {
 						SIGN IN
 						</CustomButton>
 						<CustomButton 
+							type='button'
 							onClick={signInWithGoogle}
 							isGoogleSignIn
 						>

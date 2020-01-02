@@ -2469,10 +2469,33 @@ Changing the Favicon and the Title of the Tab:
 2. Change the title there with the App's.
 3. Replace the favicon under public folder.
 
+*******************************************
 
+CHAPTER #14. Master Project Deploying To Production
 
+----------Deploying to Heroku------------
+(Assuming that you already created a Heroku account)
+1. Login to heroku with the command:
+|	heroku login
 
+2. Create a new Heroku project (static website) with the command:
+|	heroku create [name_of_the_project] --buildpack
+https://github/mars/create-react-app-build pack.git
 
+	Note:
+		--buildpack allows to deploy react project as a static website and we want this because it's the best and most efficient.
 
+3. Push the project to heroku with the command:
+|	git push heroku master
 
+-----------Firebase Login Issue-----------
+
+Scenario:
+	Uncaught error "auth/unauthorized-domain" when logging in using firebase.
+
+Solution:
+	1. Go to firebase console.
+	2. Go to Authentication
+	3. Click on Sign-in method tab
+	4. Add a new authorized domain (which is the domain of the app hosted by heroku).
 
