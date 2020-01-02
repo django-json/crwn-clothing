@@ -1865,10 +1865,10 @@ Solution:
 		- Whenever the reducer returns a new object, redux recomposes and rebuilds the entire state object's "mapStateToProps" and is actually getting called every single time which is always passing in new props to our components.
 
 		Note:
-			reducer() is always returning a new value because it doesn't know that the cart items coming in might be the exact same (value) which is NOT good for performance because we don't want to rerender our component every time the state changes ESPECIALLY if those state changes don't actually modify the parts of the state that our component cares about.
+			reduce() is always returning a new value because it doesn't know that the cart items coming in might be the exact same (value) which is NOT good for performance because we don't want to rerender our component every time the state changes ESPECIALLY if those state changes don't actually modify the parts of the state that our component cares about.
 
 	Caveat's Solution:
-		- Store or cache the value of what our selector(reducer()) is using to compute it's value.
+		- Store or cache the value of what our selector(reduce()) is using to compute it's value.
 		- If the cart item values don't actually change right and if the output of the selector doesn't change, we don't want to rerender our component -- this is called "Memoization"
 
 		Memoization
@@ -2058,7 +2058,7 @@ Acquired Ideas:
 
 -----------Dispatch Action Shorthand-------------
 
-* If the mapDispatchToProps or NULL value is not passed as the second argument of connect(), redux is actually passing dispatch by default. In other words, you have the access to all already dispatched actions in the App.
+* If the mapDispatchToProps or NULL value is not passed as the second argument of connect(), redux is actually passing dispatch by default. In other words, you have the access to dispatch function in the App.
 
 	Sample Code:
 	*************************************************
@@ -2112,3 +2112,276 @@ Acquired Ideas:
 
 	export default CheckoutItem;
 	****************************************************
+*******************************************************
+
+CHAPTER #9: Master Project Session Storage + Persistence
+
+--------Local Storage and Session Storage----------
+
+Local Storage:
+	- will persist until it is cleared out.
+	- If the browser window or the browser itself is close, whatever that is stored in the local storage is still accessible.
+
+		Two functions:
+			1. setItem()
+				- set the item to be stored into the local storage object.
+
+				takes Two parameters:
+					1. Key
+						- a string value
+						- will be referenced later to fetch the value attached to it.
+
+					2. Value
+						- a string value.
+						- use JSON.stringify to convert JavaScript object to JSON object.
+
+			2. getItem()
+				- get the item from the local storage.
+				- takes the Key as a parameter to retrieve the specific stored value.
+				- use JSON.parse() to convert JSON object to JavaScript object.
+
+	Example:
+		- Add item to the local storage:
+			localStorage.setItem('myCat', 'Tom');
+
+		- The syntax for reading the localStorage item is as follows:
+			var cat = localStorage.getItem('myCat');
+
+		- The syntax for removing the localStorage item is as follows:
+			localStorage.removeItem('myCat');
+
+		- The syntax for removing all the localStorage items is as follows:
+			// Clear all items
+			localStorage.clear();
+
+Session Storage:
+	- persists throughout the session. As long as the tab is open even if we refresh the page, the app still has access to what has been stored in session storage.
+	- If the page is closed, then whatever that is stored in session storage will be lost.
+
+	Syntax:
+		/* Save data to sessionStorage */
+		sessionStorage.setItem('key', 'value');
+
+		/* Get saved data from sessionStorage */
+		let data = sessionStorage.getItem('key');
+
+		/* Remove saved data from sessionStorage */
+		sessionStorage.removeItem('key');
+
+		/* Remove all saved data from sessionStorage */
+		sessionStorage.clear();
+
+----------Redux Persist------------
+Redux Persist:
+	- let us leverage either local storage or session storage.
+
+Using Redux Persist:
+
+	1. Install redux-persist library on the app using the command:
+	|	npm install redux-persist
+
+	2. Go to store.js file and import "persistStore" from redux-persist library and do some config:
+
+		Sample Code:
+
+		store.js
+		***************************************
+		import { persistStore } from 'redux-persist';
+
+		const store = createStore(rootReducer, applyMiddleware(...middleware));
+
+		/* Persisted version of store */
+		export const persistor = persistStore(store);
+
+		export default {store, persistor};
+		***************************************
+		Note:
+			What persistStore does is it allows the browser to actually cache our store depending on certain configuration option.
+
+	3. Go to root-reducer.js and do the following:
+		1. import the "persistReducer" from redux-persist
+		2. import "storage" from redux-persist/lib/storage
+		3. define the persist configuration that will going to be used.
+
+		Sample Code:
+
+		root-reducer.js
+		*****************************************
+		import { persistReducer } from 'redux-persist';
+		import storage from 'redux-persist/lib/storage';
+
+		/* redux-persist configuration that will be used */
+		const persistConfig = {
+			key: 'root',
+			storage,
+			whitelist: ['cart']
+		}
+
+		const rootReducer = combineReducers({
+			user: userReducer,
+			cart: cartReducer
+		});
+
+		export default persistReducer(persistConfig, rootReducer);
+		*****************************************
+		Note:
+			- "storage" property is the type of storage that will be used.
+			- "whitelist" property is an array containing the string names of any of the reducer that we want to store.
+			- the "persistReducer()" is a function that takes two arguments:
+				1. persist configuration
+				2. rootReducer (the reducers that are combined with combineReducers())
+			- this modify the root reducer with the persistence capabilities.
+
+	4. Go to index.js and do the following:
+		1. import "PersistGate" from redux-persist/integration/react.
+		2. import the "store" and the "persistor" from store.js
+		3. Wrap the App component inside the PersistGate component.
+		4. Pass the "persistor" as a prop to the PersistGate component.
+
+		Sample Code:
+
+		index.js
+		**************************************
+		import { PersistGate } from 'redux-persist/integration/react';
+
+		import { store, persistor } from './redux/store';
+
+		ReactDOM.render(
+			<Provider store={store}>
+				<BrowserRouter>
+					/*
+						The App is wrap inside the PersistGate with the persistor as the passed prop
+					*/
+					<PersistGate persistor={persistor}>
+						<App />
+					</PersistGate>
+				</BrowserRouter>
+			</Provider>, 
+			document.getElementById('root'));
+		**************************************
+		Note:
+			- We wrap the App in the PersistGate because what we want to do is to have the application always have access to the persistence flow itself.
+			- What will do is it will allow the PersistGate to actually the one receive the store but also fire off actions that will rehydrate the state whenever our application refreshes. 
+*****************************************************
+
+CHAPTER #10: Master Project Redux 2
+
+------------More on State-------------
+
+* Remember that it is a good practice to store local state that will never going to be updated into redux for the Testing purposes when testing the application.
+
+* - What you usually do with this is to make a new reducer. 
+  - Set the default state as the INITIAL_STATE which will be the default state of the "state" parameter of the reducer.
+  - In the switch statement block, just return this state in the default case block.
+
+******************************************************
+
+CHAPTER #11: Master Project Advanced Routing
+
+---------- Nested Routing----------
+
+Scenario:
+	Nesting Route from component to another component with a reference of the current path.
+
+Solution: 
+	- Use the "match" object to access the current path of that we are matching.
+	- Use string interpolation to add a new string to the path (e.g. route parameter).
+
+-----------More on Routing----------
+
+mapStateToProps has a second argument which is the owned Props of the component.
+
+******************************************************************************
+
+CHAPTER #12: Master Project State Normalization
+
+----------Data Normalization----------
+
+Data Normalization
+	- storing lists of items in objects instead of arrays.
+
+	When to use this:
+		When you need an individual element inside of these arrays.
+
+	Sample Code:
+
+	shop.selectors.js
+	***************************************
+	/* FROM */
+	const COLLECTION_ID_MAP = {
+		hats: 1,
+		sneakers: 2,
+		jackets: 3,
+		womens: 4,
+		mens: 5
+	};
+
+	export const selectCollection = collectionUrlParam => 
+		createSelector(
+			[selectCollections],
+			collections => 
+				collections.find(
+					collection =>
+						collection.id === COLLECTION_ID_MAP[collectionUrlParam]
+				)
+		);
+
+	/* TO */
+	***************************************
+	export const selectCollection = collectionUrlParam => 
+		createSelector(
+			[selectCollections],
+			collections => 
+				collections[collectionUrlParam]
+		);
+	***************************************
+
+--------Data Flow In the App------------
+
+Scenario:
+	Displaying list of items in an object on the app.
+
+	Example:
+		const collections = {
+			hats: {
+				item_name: 'Boony',
+				price: 24,
+				...
+			},
+			jeans: {
+				...
+			},
+			...
+		}
+
+Solution:
+	If it is a list of items in array, we can use map to map over each item but it is an object so use Object.keys() instead.
+
+	Object.keys([object]) 
+		- returned the keys (i.e. hats and jeans and other keys) from the object in an array format).
+
+	Chain the .map() function to access each item in an object through there respective keys.
+
+	Example Code:
+
+	shop.selectors.js
+	********************************************
+	export const selectCollectionsForPreview = createSelector(
+		[selectCollections],
+		collections =>
+			Object.keys(collections).map(key => collections[key])
+	);
+	********************************************
+	Note:
+		We want to get all the keys and map over that array of keys so we get the value of our collections object at that key which will give us an array of items that we're trying to get.
+
+
+
+
+
+
+
+
+
+
+
