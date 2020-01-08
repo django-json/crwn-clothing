@@ -840,7 +840,7 @@ queryReference object
 
 	We get them by calling either:
 		firestore.doc('/users/:userId');
-		firestore.collections('/users');
+		firestore.collection('/users');
 
 	It does not have the actual data of the collection or document. 
 
@@ -2498,4 +2498,765 @@ Solution:
 	2. Go to Authentication
 	3. Click on Sign-in method tab
 	4. Add a new authorized domain (which is the domain of the app hosted by heroku).
+
+
+---------Removing redux-logger from Production Build--------
+
+1. Go to store.js
+
+2. Remove logger from middlewares variable.
+
+3. Under the middlwares variable do the following code:
+
+	Code:
+
+	store.js
+	***************************************
+	const middlewares = [];
+
+	/*This will push logger middlware to middlewares variable if the current node environment is in development build.*/
+
+	if(process.env.NODE_ENV === 'development') {
+		middlewares.push(logger);
+	}
+	***************************************
+	Note:
+		This will remove the redux-logger logging into the console every time an action gets dispatch when in production mode.
+
+*********************************************
+
+CHAPTER #15. Master Project CSS in JS - styled-components
+
+------------CSS in JS--------------
+
+Current Way of using CSS in the Application:
+	- The current way that we add CSS in the application is we import them into our component files and we try to namespace our CSS to the top level components classes or any of the children's classes but we scope them as best as we can with the CSS that we write.
+
+
+Scenario:
+	When the former developer create a Card Component with it's own styles. Years had passed a new hired developer created a new Component in the App and inside it's components he has his own card which uses the same class name as the card created by the former dev in the past years.
+
+	Problem:
+		Unexpected results will happen to the styles of the newly created Card of the new dev because he uses the same class name with the exisiting card class name.
+
+	Reason:
+		- CSS all share one single global namespace the moment that we import this CSS into our Card component and this component is rendered.
+
+		JavaScript put this styling into the 
+		head (i.e. <head></head>) of our applicaiton so we can actually see this when we look inside of our elements.
+
+		This happens when we import styles into our components.
+
+	Probable Solution 1:
+		BEM (Block Element Modifier) 
+			- is is a naming of your CSS so that you follow a certain format known as the Block, the Element, and then the Modifier.
+
+		Example:
+		********************************
+			<div class="block">
+				...
+				<span class="block__elem">
+				</span>
+			</div>
+		********************************
+		Note:
+			What ends up happening is you have these really really nested and really long class names on all of your components.
+
+			-This adds extra mental overhead which is always a bad thing.
+
+			This is the default problem with CSS as mentioned. BEM is a solution that was created based on the way that CSS was built.
+
+
+	Probable Solution 2:
+		We created an object of styles with its property in a cobabCase and pass this object to the style prop.
+
+		Example Code:
+
+		************************************
+		const textStyles = {
+			color: 'red',
+			fontSize: '24'
+		};
+
+		function App() {
+			return(
+				<Card>
+					<div style={textStyles}> Hello World! </div>
+				</Card>
+			)
+		}
+		************************************
+		Notes:
+			-What happens then is the style is directy written into the element.
+
+		Issues:
+			- We don't have access to all of the CSS selectors when we want specific selectors that we want to leverage that we can't such as "disabled" selector or cannot access "child" and so on.
+
+	Best Solution:
+		CSS in JS with "styled-components" library.
+
+		Cons of using CSS in JS:
+			- it is using a javascript library to render our styles very similar in the Solution 2.
+			- the difference is the way that this was handled that it got placed on our div but what's still happening is that we're letting our javascript add our styles to our HTML.
+
+		Pros:
+			- Performance is extremely fast. JavaScript render the CSS is minimal practically non-existent on performance.
+			- the CSS is scoped purely to that component.
+
+		Notes:
+			- What CSS in Js aims to solve by using JavaScript to render our CSS is to encapsulate all of our CSS to just the component that is relevant.
+
+
+---------styled-components-----------
+
+1. Install styled-components library with the command:
+
+|	npm install styled-components
+
+2. Go to App.js and import styled keyword.
+
+	Example:
+	******************************************
+	import styled from 'styled-components';
+	******************************************
+	Note:
+		This keyword allows to actually generate components.
+
+	2.1. Create a new component with it's own style with styled keyword.
+
+		Example Code:
+
+		*******************************************
+		const Text = styled.div`
+			color: red;
+			font-size: 28px;
+			border: ${({ isActive }) => 
+				isActive ? '1px solid black': '3px dotted green'};
+		`
+
+		function App() {
+			return (
+				<div className='App'>
+					<Card>
+						<Text isActive={false}> I am a component </Text>
+					</Card>
+				</div>
+			)
+		}
+		******************************************
+		Note:
+			- styled keyword generates a new component with it's specified element and it gives this component's element with a unique string class so as a result, the styles will never bleed across the application.
+			- it then create a new stylesheet with those unique styles pointing to this unique class name.
+
+			- we can pass a prop to this generated components the same as how we pass props to other React components.
+
+
+-----------styled-components In the App----------
+
+* When using styled components, create a separate file for that component in a format like this:
+
+	card/card.styles.jsx
+
+
+* The common syntax for styled components is like this:
+	
+	Syntax:
+
+	************************************************
+	export StyledComponentName = styled.element`
+		... [your styles]
+	`;
+	************************************************
+
+
+* If you want to make a styled Link (react-router-dom component), just pass the Link component as an argument for "styled" keyword.
+
+	Example Code: 
+
+	header.styles.jsx
+	**********************************************
+	import styled from 'styled-components';
+	import { Link } from 'react-router-dom';
+
+	export const LogoContainer = styled(Link)`
+		height: 100%;
+	    width: 70px;
+	    padding: 25px;
+	`;
+	**********************************************
+
+
+* If you want to apply style to more that two styled components, import css from 'styled-components' and place it instead of "styled" keyword and passed the variable to those styled components inside a string interpolation.
+
+	Example Code: 
+
+	header.styles.jsx
+	**********************************************
+	import styled, { css } from 'styled-components';
+	import { Link } from 'react-router-dom';
+
+	const OptionContainerStyles = css`
+		padding: 10px 15px;
+	    cursor: pointer;
+	`;
+
+	/**/
+	export const OptionLink = styled(Link)`
+		${OptionContainerStyles}
+	`;
+
+	export const OptionDiv = styled.div`
+		${OptionContainerStyles}
+	`;
+	**********************************************
+	Note:
+		"css" enables to reuse the styles by styled components.
+
+		- import this styled components to the React Component.
+
+-----------More on styled-components------------
+
+Scenario:
+	The custom button component changes styles depending on a condition which makes the button element getting messy with ternary operator which set what class should be applied depending on the condition.
+
+	Example: 
+
+	<button className={`
+		${inverted ? 'inverted': ''} ${isGoogleSignIn? 'google-sign-in': ''} custom-button`} 
+		{...otherProps}
+	> 
+		{children}
+	</button>
+
+Solution:
+	1. Convert this button element into styled component.
+
+	2. Define your button styled component first.
+
+	3. Create styles for each of your styles (i.e. inverted button, isGoogleSignIn button, the regular button styles) with "css" keyword.
+	
+	4. Define a function that will accept the props passed by the parent Component which will then check the props properties if it needs inverted button style or googleSignIn button style or the regular button style if the rest of the condition is false.
+
+	Example Code:
+
+	custom-button.styles.jsx
+	****************************************
+
+	/*Styles for a regular button*/
+	const buttonStyles = css`
+		background-color: black;
+		color: white;
+		border: none;
+		
+		&:hover {
+			background-color: white;
+			color: black;
+			border: 1px solid black;
+		}
+	`;
+
+	/*Styles for an inverted button*/
+	const invertedButtonStyles = css`
+		...
+	`;
+
+	/*Styles for a googleSignIn button*/
+	const googleSignInButtonStyles = css`
+		...
+	`;
+
+	/*A function which accepts the props that is passed and check what button styles is needed based on condition and return the button styles that satisfy the condition*/
+
+	const getButtonStyles = props => {
+		if(props.isGoogleSignIn) {
+			return googleSignInButtonStyles;
+		}
+
+		return props.inverted ? invertedButtonStyles : buttonStyles; 
+	}
+
+	/*Defining the CustomButtonContainer styled component and setting it's styles for layouting purposes and calling the function which will give the desired button style inside the string interpolation*/
+
+	export const CustomButtonContainer = styled.button`
+		min-width: 165px;
+		width: auto;
+		height: 50px;
+		letter-spacing: 0.5px;
+		line-height: 50px;
+		padding: 0 35px 0 35px;
+		font-size: 15px;
+		text-transform: uppercase;
+		font-family: 'Open Sans Condensed';
+		font-weight: bolder;
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+
+		${getButtonStyles}
+	`;
+	****************************************
+
+************************************************
+
+CHAPTER #16. Master Project Advanced Redux + Firebase
+
+-----------Moving the Shop Data to Firebase----------
+
+* Keep in mind that when we're using a no sequel database, we have to make sure that we enforce ourselves to store the same values across our documents if we can because we don't want to pull in all of our documents and iterate throught them only to find that some objects don't have properties that we expect them to have beyond that.
+
+* When you want to add a new collection and document to firestore to add the existing data that is hard coded so it wouldn't be a pain to write it on the firestore explicitly, add a new function which accepts the collection key and the document to be added as arguments that will be used to store to the firestore as new collection with it's documents.
+
+	Example Code:
+
+	firebase.utils.js
+	*******************************************
+	export const addCollectionAndDocuments = (collectionKey, documentsToAdd) => {
+		const collectionRef = firestore.collection(collectionKey);
+		console.log(collectionRef);
+	};
+	*******************************************
+	Note: 
+		- Before adding the whole code to store the new collection and it's respective document, it is a good idea to check the function first if it is working.
+		- Import this function to App.js and just call it inside the componentDidMount() class method and check the console after the browser refreshes to see if the collection reference object is displayed.
+		- All these code will be removed afterwards because its purpose is to store only the starting collections and documents on the database.
+
+* Caveat about Firestore:
+	- The thing about firestore is that we can only make one set (creating document) at a time. We can't call collectionRef.set() and then set an array of values in as the collection's documents. In other words, each call is individual and fire one at a time.
+
+	Scenario:
+		If our internet connection stops halfway through, our code only will have saved half of those documents because the other half would not have made it to the server. This is bad because the code is unpredictable and we want to know that if we hit our function and all of our requests send -- all of them should set. If any of them fail, then we want the whole thing to fail because we can anticipate it that we know that the code is consistent.
+
+	Solution:
+		-Use firestore batch object. With this batch object, we just add all of our sets into it and then we fired off whenever we're done adding all the calls we want to it. 
+
+		- Then we will loop over this objects to add array using the foreach() method.
+
+		Example Code:
+
+		firebase.utils.js
+		****************************************
+		export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+			const collectionRef = firestore.collection(collectionKey);
+			
+			/*Instantiate the firestore's batch object to set the whole objects in one set*/
+			const batch = firestore.batch();
+
+			/*Looping through the objects and set each object (document to be added to firestore) its own id with batch.set()*/
+
+			objectsToAdd.forEach(obj => {
+				const newDocRef = collectionRef.doc();
+				batch.set(newDocRef, obj);
+			});
+
+			/*	.commit() will fire off batch request
+				It returns a promise. When commit succeeds, it will come back and resolve a void value (null value) which can be used to handle error when we call addCollectionAndDocuments function and chain .then()
+			*/
+			return await batch.commit();
+		};
+		****************************************
+		
+------------Bringing Shop Data to the App----------
+
+1. Pull the firestore data in the nearest component ancestor so both the children components that need it can access the data without repeating writing code for each children component (DRY [Do Not Repeat Yourself] concept).
+
+	Example Code:
+
+	shop.components.jsx
+	*************************************************
+	unsubscribeFromSnapshot = null;
+
+	componentDidMount() {
+		const collectionRef = firestore.collection('collections');
+
+		/*onSnapshot will listen if the collectionRef changes which will pass the snapshot of the new collectionRef*/
+
+		collectionRef.onSnapshot( async snapshot => 
+			convertCollectionSnapshotToMap(snapshot);
+		);
+
+	}
+	*************************************************
+
+Scenario:
+	The data from firestore don't have the properties that is required for the components to run like: routeName (because this is not necessary to store into the database as it is only used in the frontend for web and which can also be a waste of memory. Assuming that the data in firestore is also used in mobile app which doesn't really need the routeName).
+
+Solution:
+	1. Create a function which will accept the querySnapshot as parameter.
+
+	2. This function will map through each docs that come from querySnapshot.
+
+	3. Destructure the properties from each docs with .data().
+
+	4. Return a new object with the "routeName" property and it's value
+
+		4.1. To set a value for the routeName, use the title property and convert it to lowercase using .toLowerCase() [because the title is in sentence case] and passed it inside encodeURI().
+		Coincidently, the "routeName" property value has the same value as the "title" property value (but in Sentence case while the former is all lowercase).
+
+		encodeURI()
+			- accepts string and will give back a string where any characters that the url cannot actually handle or process such as certain symbols, spaces, or whatever that you actually never see in a url.
+			- it will make sure to convert them into a version that the url can actually read.
+
+		Note:
+			- encodeURI() is used because the routeName is a thing that is used in order to route by URL.
+
+	Sample Code:
+
+	firebase.utils.js
+	**************************************************
+	export const convertCollectionSnapshotToMap = collections => {
+		const transformedCollections = collections.docs.map(doc => {
+
+			/*Destructure properties off from doc object*/
+			const { title, items } = doc.data();
+
+			/*Return a new object with routeName as the new added property and the id which is the id created by firestore*/
+			return {
+				routeName: encodeURI(title.toLowerCase()),
+				id: doc.id,
+				title,
+				items
+			}
+		});
+	}
+	/*Display the new collections with the routeName property*/
+	console.log(transformedCollections);
+	**************************************************
+
+------------Adding Shop Data to Redux----------
+
+Scenario:
+	Adding the transformed collections from firestore to redux store.
+
+Solution:
+	1. Create a file shop.actions.js and define your function there with a parameter which will accept the mapped collections.
+
+	Sample Code:
+
+	shop.actions.js
+	***************************************
+	export const updateCollections = collectionsMap => ({
+		type: ShopActionTypes.UPDATE_COLLECTIONS,
+		payload: collectionsMap
+	});
+	***************************************
+
+	2. Go to the shop.reducer.js and import the action and add a new case for this action.
+
+	3. Go to the shop.component.jsx and import the action and connect() to enable to dispatch the action to the reducer.
+
+	4. Destructure the newly created prop that handles in dispatching the actions to the reducer which will update the collections and make changes to the DOM.
+
+***********************************************************
+
+CHAPTER #17. Master Project HOC Patterns
+
+------------WithSpinner HOC-----------
+
+Scenario:
+	When the data that the component needs is still on the process (e.g. pending firestore data), if not handled, it will give an error in the app that some props is null.
+
+Solution:
+	Create a loading message or any loading symbols that will inform user that the page is still on the process.
+
+	Steps:
+		1. Create a higher order component called "with-spinner".
+
+			Sample Code:
+
+			with-spinner.component.jsx
+			**************************************************
+			import { SpinnerOverlay, SpinnerContainer } from './with-spinner.styles';
+
+			const WithSpinner = WrappedComponent => ({isLoading, ...otherProps}) => {
+				return isLoading ? (
+					// component that will ensure that this component will be at the center of the page
+					<SpinnerOverlay>
+
+						// the spinner
+						<SpinnerContainer />
+					</SpinnerOverlay>
+				) : (
+					<WrappedComponent {...otherProps}/>
+				)
+			};
+
+			export default WithSpinner;
+			**************************************************
+			Notes:
+				- When "isLoading" is true which means that the page data is still on the process of fetching it from firestore, it will display the spinner.
+				- If it is false, then it will display the page with the fetched data.
+
+		2. Go to the component (Shop Component for instance) that receives and makes the call to update the reducer after getting the data back from the backend. For this reason we have to put the logic for determining the "with-spinner" on our "shop" component.
+
+		The logic is going to be contained within the Shop page because the shop page is actually the one that knows when technically speaking our shop data is finished loading because the moment that snapshot comes back and it's converted (to array of objects since it is in the form of [object Object] and the component that going to use it use an array of objects) we update the reducer. At that point we know that technically speaking, our shop page is good to render the collection object.
+
+		3. Import the higher order component "with-spinner" in the "shop" component.
+
+		4. Passed the component(s) to the WithSpinner HOC as argument that needs the spinner and store the returned value in a new variable that will be the new name of the processed component from WithSpinner.
+
+			Sample Code:
+
+			shop.component.jsx
+			*********************************************
+			/*The WithSpinner higher-order component will return Spinner component if the "loading" state is true, else, it will return the wrapped component with it's props to a newly defined component (e.g. CollectionsOverviewWithSpinner)*/
+
+			const CollectionsOverviewWithSpinner = WithSpinner(CollectionsOverview);
+			const CollectionPageWithSpinner = WithSpinner(CollectionPage);
+			*********************************************
+
+		5. Call this.state and set the loading property to true as the default value for the isLoading property that is going to be passed to those new processed components (by the WithSpinner).
+
+			Sample Code:
+
+			shop.component.jsx
+			**********************************************
+			/*More simplified way to call a state without calling constructor() and super()*/
+			state = {
+				loading: true
+			}
+			**********************************************
+
+		6. Set the state to false after we call the action that will update the reducer which change the collections object.
+
+			Sample Code:
+
+			shop.component.jsx
+			**********************************************
+			componentDidMount() {
+
+				...
+
+				collectionsRef.onSnapshot(async snapshot => {
+					const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+
+					/*The action that will update the shopReducer*/
+					updateCollections(collectionsMap);
+
+					/*If the reducer has been updated after dispatching the update collection action, set the "isLoading" to false*/
+					this.setState({loading: false});
+				});
+			}
+			**********************************************
+
+		7. In the Routes component declaration, instead of using the "component" property to send what component to render when routed by url, use the "render" property instead which rerenders component when changes has been made to the new component.
+
+		Pass the props from the Route component explicitly to the rendered component since an anonymous function is defined which create its own scope that doesn't have any connection to the class scope.
+
+			Sample Code:
+
+			shop.component.jsx
+			**********************************************
+			render() {
+				const { match } = this.props;
+				const { isLoading } = this.state;
+				return( 
+					<div className='shop-page'>
+						<Route exact
+							path={`${match.path}`}
+
+							/*Passing the props (match, location, history) to the component that will be (re)rendered*/
+
+							render={(props) => 
+								(<CollectionsOverviewWithSpinner isLoading={isLoading} {...props} />)
+							} 
+						/>
+						<Route 
+							path={`${match.path}/:collectionId`} 
+							render={(props) => 
+							  	(<CollectionPageWithSpinner isLoading={isLoading} {...props}/>)
+							}  
+						/>
+					</div>
+				);
+			};
+			**********************************************
+			Notes:
+				The render() is a method that takes a function where the parameters and the function are pretty much just the parameters that the component will receive, which in this case are going to be the: match, location, and history props that the Route passes into the component which is what gives the collection page access to the match object that is use inside the selector -- which is pull off of "ownProps" (see collection.component.jsx) 
+
+Conclusion:
+	When we run the application in the browser and go to the shop page (also collection page), we will see the spinner that loads while our component is fetching the backend data. The moment it comes back and updates the reducer it flips the loading to false which then renders our actual final component.
+
+----------How to Build HOC's-------------
+
+Higher-Order Component:
+	- Is a component
+	- Takes in a component as an argument
+	- Returns a new component
+	- The component it returns can render the original component that was passed in
+
+	Sample Code:
+
+	Steps:
+		1. Take in a “WrappedComponent” argument.
+
+			Sample Code:
+
+			************************************
+			function hocComponent (WrappedComponent) {
+
+			}
+			************************************
+
+		2. Return a new component
+
+			Sample Code:
+
+			************************************
+			function hocComponent (WrappedComponent) {
+				return class HocComponent extends React.Component {
+
+				}
+			}
+			************************************
+
+		3. Render the “WrappedComponent” argument passing it a prop.
+
+			Sample Code:
+
+			************************************
+			function hocComponent (WrappedComponent) {
+				return class HocComponent extends React.Component {
+					state = { someProp: false }
+				    mouseOver = () => this.setState({ someProp: true })
+				    mouseOut = () => this.setState({ someProp: false })
+				    render() {
+						return (
+							<div onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}>
+							  <WrappedComponent someProp={this.state.someProp} />
+							</div>
+						);
+				    }
+				}
+			}
+			************************************
+
+****************************************************
+
+CHAPTER #18. Master Project Asynchronous Redux
+
+---------Observables + Observer Pattern----------
+
+Observer
+	- is some piece of code that wraps the stream of events.
+	- is a piece of code that essentially has three function calls on it.
+
+	Three function calls:
+
+		next: (nextValue) => { 
+			//Do something with value
+		},
+
+		error: (error) => { 
+			//Do something with error
+		},
+
+		complete: () => {
+		 	//Do something when finished
+		}
+
+
+Observable Pattern Diagram:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+							Observable (Stream of Events):
+
+           -----> Event -----> Event -----> Event ----> Event -----> Event ------>
+										^
+										|
+										|
+									Subscription
+										|	
+										|
+										|
+
+									Observer:						
+					{
+						next: (nextValue) => { 
+							//Do something with value
+						},
+
+						error: (error) => { 
+							//Do something with error
+						},
+
+						complete: () => {
+						 	//Do something when finished
+						 	//optional
+						}
+					}
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+					Notes:
+						- Observer has:
+							1. "next" call 
+									- which is literally just the code that you execute whenever a new event happens.
+
+							2. "error" call
+									- is something that we do when an error occurs.
+
+							3. "complete" call
+									- is an optional call that will occur if for example the stream is finished. 
+									(A stream can definitely stop emitting data.
+
+										For example:
+											We know that from our back end let's say we were giving five pieces of data in an unknown amount of time. After we've gotten all five, we know that we don't need any more data so we can actually stop listening and shut down this stream because we don't need to keep it open anymore.
+
+											The observable is capable of stopping the stream at some point and if we have any of these observers then they're complete calls get called and how this happens is through what's called "Subscription".
+
+											Subscription
+												- is essentially a way for us to tie our Observer using what's called a "listener".
+
+													- the observer is listening to these values (from stream of events [observable]) and we're subscribing to this observer's stream of events.
+
+													-  What Observer does is we are saying for example:
+													"Hey! Observable I'm gonna give you my function calls. Whenever new event comes in, I want you to call the 'next' on it. Whenever an error comes in, I want you to call 'error'.  When it completes, I want you to call the 'complete' ."
+									)
+
+									- the complete call is rarely happen in Firebase because it is a live database which means that updates can always happen.
+
+						- an Observable is a stream which means that there are subsequent concurrent back to back events that could occur in an asynchronous fashion (e.g. user clicking multiple times).
+							- it is some piece of code that wraps around this stream so that we're actually able to do something with the value of that piece of data at each event.
+
+						- an Observable can have many listeners
+
+						- the subscription never ends because the stream is always open. If we instantiated some listener, this listener exists now because it's always listening for events.
+
+						If our component unmounts, we don't care about this listener as far as this component is concerned anymore but because the auth stream is always exists inside of the auth library which is in our application now.
+
+						Once we imported it, then it's going to always hold on to this listener.
+
+						What we have to do is we have to unsubscribe from it.
+
+						Firestore allows to get back and unsubscribe function that the moment we call it, it will eliminate that listener so you can kind of see it as whenever the auth.onAuthStateChanged() get's instantiated, it gives us back some reference -- that's a function that can get called that points to this listener (onAuthStateChanged()) that we just instantiated right inside the "componenetWillUnmount()" lifecycle method
+
+						Example Code:
+
+						***************************
+						componentWillUnmount() {
+							this.unsubscribeFromAuth();
+						}
+						***************************
+
+						- the moment the component unmounts, we unsubscribe from it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
