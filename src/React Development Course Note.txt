@@ -3240,7 +3240,533 @@ Observable Pattern Diagram:
 						- the moment the component unmounts, we unsubscribe from it.
 
 
+---------Redux Thunk-----------
 
+- handles asynchronous actions.
+
+1. Install Redux Thunk with the command:
+
+|	npm install redux-thunk
+
+	Notes:
+		Redux Thunk
+			- is a middleware that allows us to fire actions.
+
+2. Go to store.js and import thunk from 'redux-thunk' and put "thunk" in the "middlewares" array.
+
+... break
+
+Scenario:
+	From ShopPage component, we want to put the code that fetches the data from firebase to a place where for example enable other components (might be) to leverage the same functionality, it can reuse it without rewriting the code. 
+
+Solution:
+	We use a library that handles asynchronous actions (Redux Thunk) and create an actions to handle this problem:
+
+	Steps:
+		...continuation
+
+		3. Go to shop.types.js and add the following action types:
+
+			FETCH_COLLECTIONS_START: 'FETCH_COLLECTIONS_START'
+				- tells redux we're starting to fetch the data. This is before any data get fetch. This is when the first API call to our firestore begins.
+
+			FETCH_COLLECTIONS_SUCCESS
+				- when fetching of data is successful this is where it comes back from us with a successful API request and hopefully the data that we need is also come back as well.
+
+			FETCH_COLLECTIONS_FAILURE
+				- this is pretty much what happens if for example the server is down or the internet connection is poor. This handles this kind of error with it's own function.
+
+			Sample Code:
+
+				shop.types.js
+				******************************************
+				export const ShopActionTypes = {
+					FETCH_COLLECTIONS_START: 'FETCH_COLLECTIONS_START',
+					FETCH_COLLECTIONS_SUCCESS: 'FETCH_COLLECTIONS_SUCCESS',
+					FETCH_COLLECTIONS_FAILURE: 'FETCH_COLLECTIONS_FAILURE'
+				};
+				******************************************
+
+		4. Go to shop.reducer.js and add "isFetching: false" property to the initial state object because the reducer needs to be aware whether data is being fetched or successfully fetched. Also, add the "errorMessage" property to store the error message if the request failed.
+
+		Sample Code:
+
+			shop.reducer.js
+			************************************
+			const INITIAL_STATE = {
+				collections: null,
+				isFetching: false,
+				errorMessage: action.payload
+			};
+			************************************
+
+			- all this initial state is indicating that there is a state where our application is fetching data related to the shop reducer.
+
+		5. Add the new cases for the new types in the reducer function.
+
+		Sample Code:
+
+			shop.reducer.js
+			************************************
+			const shopReducer = (state = INITIAL_STATE, action) => {
+				switch(action.type) {
+					case ShopActionTypes.FETCH_COLLECTIONS_START:
+						return {
+							...state,
+							isFetching: true
+						}
+					case ShopActionTypes.FETCH_COLLECTIONS_SUCCESS:
+						return {
+							...state,
+							isFetching: false,
+							collections: action.payload
+						}
+					case ShopActionTypes.FETCH_COLLECTIONS_FAILURE:
+						return {
+							...state,
+							isFetching: false,
+							errorMessage: action.payload
+						}
+					default:
+						return state;
+				}
+			}
+			************************************
+			Explanation:
+				- When the action that is currently fired is FETCH_COLLECTIONS_START, it returned the "isFetching" with a value of true because the data is currently on fetching process.
+
+				"isFetching: false" for FETCH_COLLECTIONS_SUCCESS because the data is already fetched, 
+
+				and "isFetching: false" and "errorMessage: action.payload" is for FETCH_COLLECTIONS_FAILURE if there is any error in fetching the data from firestore.
+
+
+		6. Go to shop.actions.js. This is where we leverage thunk.
+
+			Thunk
+				- is an action creator that returns a function that gets the dispatch very similar to the mapDispatchToProps instead of creating an action that returns an action (action === javascript object)
+
+				- we're going to write a function that returns a function that gets dispatch in it so that whenever dispatch is called, it will fire multiple actions.
+
+			6.1. Create the action for FETCH_COLLECTIONS_START without payload as it is only going to just set the isFetching to true.
+
+				Sample Code:
+					************************************************
+					export const fetchCollectionsStart = () => ({
+						type: ShopActionTypes.FETCH_COLLECTIONS_START
+					});
+					************************************************
+
+
+			6.2. Create the thunk function that will dispatch these actions (fetchCollectionsStart, etc.) inside of it.
+
+				Sample Code:
+					************************************************
+
+					...
+
+					/********The "thunk" function*********/
+					export const fetchCollectionsStartAsync = () => {
+
+						return dispatch => {
+
+							/********Creating the collections reference*********/
+							const collectionsRef = firestore.collection('collections');
+
+							/********Dispatching the function that will update the reducer's state "isFetching" to true...*********/
+							dispatch(fetchCollectionsStart());
+
+							/********...Beginning of asynchronous request*********/
+							collectionsRef
+								.get()
+								.then(snapshot => {
+									const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+
+									/*********Dispatching the function that will update the reducer with payload***********/
+									dispatch(fetchCollectionsSuccess(collectionsMap));
+								})
+								.catch(error => 
+									/*********Dispatching the function that will handle any API request error**********/
+									dispatch(fetchCollectionsFailure(error.message));
+								);
+
+							/********If redux-thunk middleware is enabled, any time you attempt to dispatch a function instead of an object, the middleware will call that function with dispatch method itself as the first argument
+							
+							This is all "thunk" is. It's just a function that returns a function that gets access to dispatch so that we can dispatch multiple actions and handle asynchronous code inside of it. 
+							*********/
+						}
+					}
+					************************************************
+
+			7. Import the "thunk" method (created in the shop.actions.js) in shop.component.jsx
+
+			8. Import the createStructuredSelector from Reselect library because we want to select certain values off of our state.
+
+			8.1. Also, import connect from 'react-redux' because we want to pull state from redux.
+
+			9. Create the selector that will pull in the "isFetching" property.
+
+			Sample Code:
+
+				shop.selectors.js
+				***************************************
+				export const selectIsCollectionsFetching = createSelector(
+					[selectShop],
+					shop => shop.isFetching
+				);
+				***************************************
+
+			10. Import the selector in shop.component.jsx
+
+			11. Write the mapStateToProps
+
+				Sample Code:
+
+					shop.component.jsx
+					******************************
+					const mapStateToProps = createStructuredSelector({
+						isCollectionsFetching: selectIsCollectionsFetching
+					});
+
+			12. In mapDispatchToProps, we now need the "thunk" method from our action so import this function and do the following:
+
+				Sample Code:
+
+				shop.component.jsx
+				***************************************
+				const mapDispatchToProps = dispatch => ({
+					fetchCollectionsStartAsync: () => dispatch(fetchCollectionsStartAsync())
+				});
+				***************************************
+
+			13. Instead of pulling the old "loading" property from the old async request, destructure the "isCollectionsFetching" from props and set it as the prop value of "isLoading" property.
+
+			14. Destructure the method that will dispatch the "thunk" method inside the componentDidMount() lifecycle method.
+
+				Sample Code:
+
+				shop.component.jsx
+				***************************************
+				componentDidMount() {
+					const { fetchCollectionsStartAsync } = this.props;
+
+					/*Call the destructured prop function the moment the component mounts*/
+
+					fetchCollectionsStartAsync();
+				}
+				***************************************
+
+Conclusion:
+	Redux Thunk allows us to catch the action and it's only going to detect actions that aren't objects. (It means that thunk is interested only to a function returned value, i.e. a function that returns a function instead of an object {type, payload} and thunk will give access to dispatch which will dispatch multiple actions)
+
+	Moreover, thunk gives us the dispatch so that we can go back to giving synchronous actions action objects to the rootReducer.
+
+----------Debugging Code-----------
+
+Scenario:
+	When this components get rendered, the fetched data is still on the process of fetching it from firestore which triggers by the fetchCollectionsStartAsync() "thunk" function which dispatch multiple actions to fetch collections object.
+
+	By default, the value of isCollectionsFetching that is passed to the "isLoading" prop is false (as "isFetching" property is set to "false" by default before it gets change to "true" when an action gets called to update it.) 
+
+	In the sample code below a returned component from a HOC WithSpinner returned a spinner if the isLoading is set to true, else it will return a component with the actual component (wrapped component as argument in HOC) that uses the collections object and renders it as state. 
+
+	Sample Code:
+
+	shop.component.jsx
+	*********************************************
+	componentDidMount() {
+		const { fetchCollectionsStartAsync } = this.props;
+		/*Call the fetchCollectionsStartAsync function the moment the component mounts*/
+		fetchCollectionsStartAsync();
+	}
+
+	render() {
+		const { match, isCollectionsFetching } = this.props;
+		return( 
+			<div className='shop-page'>
+
+				...
+
+				<Route 
+					path={`${match.path}/:collectionId`} 
+					render={(props) => 
+					  	(<CollectionPageWithSpinner isLoading={!isCollectionsFetching} {...props}/>)
+					}  
+				/>
+			</div>
+		);
+	};
+
+	const mapStateToProps = createStructuredSelector({
+		isCollectionsFetching: selectIsCollectionsFetching
+	});
+	*********************************************
+
+	Problem:
+		The collections object is not available yet which gives an error that "property of" collections object is null because the component renders in a wrong timing wherein the data is still on the way.
+
+	Solution:
+		Create a new selector which selects the collections object and return a truthy or falsy value using !! to determine if the collections object is already been fetched.
+
+		Sample Code:
+
+		shop.selectors.js
+		************************************************
+		/*Import this selector to shop.component.jsx*/
+
+		export const selectIsCollectionsLoaded = createSelector(
+			[selectCollections],
+
+			/*Using !! to get a truthy or falsy value depending if the collections object is already been loaded*/
+			collections => !!collections
+		);
+		************************************************
+			- this allows to know if the collections is now available and set the selectors returned value as the prop value of "isLoading". And yet...
+
+				Another Problem:
+					- Still there is another problem of the "isLoading" prop value because when the collections object is null or empty string or NaN or false, the !! will return a false value which then when passed to "isLoading" property will then returned the wrappedComponent instead of the Spinner that we are trying to get. 
+
+				Solution:
+					- Put the ! before the selector's reference "isCollectionsLoaded: selectIsCollectionsLoaded" to negate the "false" value to "true" and likewise so we could render the Spinner.
+
+					Sample Code:
+
+					shop.component.jsx
+					*******************************************
+					/*FROM:*/
+
+						<Route 
+							path={`${match.path}/:collectionId`} 
+							render={(props) => 
+							  	(<CollectionPageWithSpinner isLoading={isCollectionsLoaded} {...props}/>)
+							}  
+						/>
+
+					/*TO:*/
+
+						<Route 
+							path={`${match.path}/:collectionId`} 
+							render={(props) => 
+							  	(<CollectionPageWithSpinner isLoading={!isCollectionsLoaded} {...props}/>)
+							}  
+						/>
+
+
+*********************************************
+
+CHAPTER: 19. Master Project Container Pattern
+
+-----------Container Pattern-------------
+
+Scenario:
+	In the ShopPage component, we are passing these two properties (isCollectionsLoaded and isCollectionsFetching) we we get the loading state of the shop reducer in order to pass them into these components that we render inside of the routes. 
+
+	However we do nothing else with these props so it almost makes more sense for us to find a way to pass these values into the CollectionsOverviewWithSpinner and CollectionPageWithSpinner components in their own isolated environment rather than pollute our shop page component because there's nothing that the ShopPage component can do with these properties other than pass them as props to these components with spinner.
+
+	The reason that this is redundant is because our ShopPage asks for all the components -- should be as dumb as possible. There is no reason for this component to know about things that it don't need to know about. Because the components that use these properties should be the ones in charge of determining whether or not they are being loaded or not. Or whether or not they should be rendering the spinner.
+
+Solution:
+	Leverage the higher order components except use the concept of the "Container Pattern"
+
+	For CollectionsOverview component (example):
+
+	1. Create a file called "collections-overview.container.jsx" under in this component directory.
+
+	Notes:
+		The container is going to be a component that gets wrapped in all of the higher order components that it needs in order to properly run the way that it expects itself to the same way how our components in ShopPage is setup.
+
+	2. Instead of wrapping the mapStateToProps around the ShopPage in order to pass that value into our CollectionsOverviewWithSpinner, we're just gonna wrap that mapStateToProps with the value from the selectors around the CollectionsOverviewWithSpinner component instead.
+
+	3. Do the following:
+
+		shop-overview.container.jsx
+		************************************************
+		import { connect } from 'react-redux';
+		import { createStructuredSelector } from 'reselect';
+		import { compose } from 'redux';
+
+		import WithSpinner from '../with-spinner/with-spinner.component';
+
+		import CollectionsOverview from './collections-overview.component';
+
+		import { selectIsCollectionsFetching } from '../../redux/shop/shop.selectors';
+
+		const mapStateToProps = createStructuredSelector({
+
+			/*"isLoading" is the property used as a prop that accepts the selectors returned value as an assigned value before implementing this container pattern*/
+
+			isLoading: selectIsCollectionsFetching
+		});
+
+		const CollectionsOverviewContainer = connect(mapStateToProps)(WithSpinner(CollectionsOverview));
+
+		export default CollectionsOverviewContainer;
+		************************************************
+
+		3.1. These part is hard to read so instead of doing this:
+			**************************************************
+			const CollectionsOverviewContainer = connect(mapStateToProps)(WithSpinner(CollectionsOverview));
+			**************************************************
+
+			*Import the "compose" component from redux. compose lets us pass these by calling a function that look like this:
+
+			**************************************************
+			const CollectionsOverviewContainer = compose(
+				connect(mapStateToProps),
+				WithSpinner
+			)(CollectionsOverview);
+
+			**************************************************
+			Notes:
+				"compose" evaluate from right to left.
+
+				So what "compose" do is it evaluates WithSpinner first by passing in the CollectionsOverview to it and then passing WithSpinner to "connect(mapStateToProps)([...will be passed here])."
+
+*************************************************
+
+CHAPTER 20: Master Project Redux-Saga
+
+------------Introduction to Sagas------------
+
+*Simplified Flow of Redux with Sagas
+
+Diagram:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+	----------------Passed in as Props-------------------------------
+	|																|
+	|																V
+  Store 														Components
+  	^																|
+  	|																|
+  	|																|
+ Reducers															|
+ 	^															Dispatch
+ 	|							   -----Sagas                       |
+ 	|							  |		  ^                         |
+Pass actions on 				  |		  |                         |
+	|						  Actions     |                         |
+	|							  |	      |                         |
+	|							  v  	  |                         V
+	------------------------------ Middleware: <-----------------Actions
+								Thunk, Sagas,
+								 redux-logger
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	Always remember:
+		Middleware catches the action before it hits the reducer.
+			- it can also throw out an action so it doesn't passed to the reducer.
+
+	Thunk vs Sagas
+		Thunk
+			- thunk will take an action function (not an action object with type and payload properties) and invoke it. The moment thunk invokes it and gets a dispatch inside of this action function, it will then dispatch the actual action that comes out of each dispatch call whenever it happens.
+
+		Sagas
+			- it's a function that conditionally runs and the condition that it depends on when it runs is based on whether or not a specific action is coming into the saga middleware.
+			- imagine a function that is listening for the FETCH_COLLECTIONS_START action. Unless that action fires, that saga (specific saga that listens to this specifc action) does not execute.
+			- the main idea with sagas is that there can be multiple sagas listening for multiple different actions or the same action but they're just pieces of code that do not run until they hear the action that they're listening for. When they do, they can do all kinds of logic -- so they can trigger other actions which go back into our middleware and continue into our reducers so other sagas can also be listening for actions that come out of sagas or they can render any kind of additional API logic. They can go to the backend and fetch some data -- use that data and dispatch actions to update reducers. The main idea with sagas is that they handled this idea fo side effects.
+
+			Types of Side Effects:
+				1. API calls to a backend
+				2. Some kind of asynchronous (takes time) code or something that triggers an impure reaction.
+
+					Pure vs Impure:
+						Pure
+							- a pure function when invoke will return the same value (with the same arguments).
+
+							Example:
+								function add(x,y) {
+									return x + y;
+								}
+
+								/*When this function will be invoked with the same arguments many times like...*/
+
+								add(5,7); // returns 12
+								add(5,7); // returns 12
+								add(5,7); // returns 12
+
+								/*...it will return the same value*/
+
+								/*In other words pure function are functions that accept an input and returns a value without modifying any data outside its scope(Side Effects).*/
+
+						Impure
+							- an impure function when invoke (many times), returns an unpredictable value contrary to pure function.
+
+							Example:
+								var z = 0;
+								function add (x,y) {
+									y = y + z;
+									return x + y;
+								}
+
+								add(5,7); //returns 12
+								z = 10;
+
+								add(5,7); //returns 22
+
+								/*
+								In other words an impure function is a function that mutates variables/state/data outside of it's lexical scope, thus deeming it “impure” for this reason. */
+
+-----------Generator Functions---------------
+
+- building block of a saga
+- is a function that resembles "async await".
+	- "async await" is actually build on top of generators.
+- is a function that can stop midway and then continue from where it stopped. It is a function that produces a sequence of results instead of a single value, i.e you generate ​a series of values.
+
+Generator Function Syntax (*):
+
+	function* gen() {
+		console.log('a');
+		console.log('b');
+	}
+
+	Notes:
+		When this function is instantiated, meaning that when it is invoke, it actually get back this "generator object" which can cast some variable like this:
+
+		Sample:
+		******************************************
+		const g = gen() 
+
+		/*If gen() is a regular function, when it is invoke, the console.log() will be logged to the browser and "g" will be set to "undefined" because functions that don't return anything would just return "undefined".*/
+
+		/*But when "g" is logged, it returns a suspended generator kind of object which is the "generator object"*/
+
+		/*When g is logged*/
+		g
+		>>> gen {<suspended>}
+
+		/*We call .next() to it.
+
+		  What next() does is it will resume the execution inside of our function.
+
+
+		*/
+		******************************************
+
+		Another generator function example:
+
+		*****************************************
+		function* gen(i) {
+			yield i;
+			yield i + 10;
+
+			/* "yield" pauses generator function execution and the value of the expression following the yield keyword is returned to the generator's caller.*/
+		}
+
+		const g = gen(5);
+
+		g.next() //returns 5;
+		g.next() //returns 15;
+		g.next() //returns an object {value: undefined, done: true} 
+				  ...this means that there is no value left to be returned.
+
+
+-----------redux-saga--------------
+
+1. Install redux-saga library with the command:
+|	npm install redux-saga
+
+2. 
 
 
 
