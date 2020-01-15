@@ -3761,12 +3761,6 @@ Generator Function Syntax (*):
 				  ...this means that there is no value left to be returned.
 
 
------------redux-saga--------------
-
-1. Install redux-saga library with the command:
-|	npm install redux-saga
-
-2. 
 
 
 
