@@ -3766,7 +3766,724 @@ Generator Function Syntax (*):
 1. Install redux-saga library with the command:
 |	npm install redux-saga
 
-2. 
+2. Go to the store.js and remove the thunk in the "middlewares" array.
+
+3. Import createSagaMiddleware from redux-saga library
+
+4. Create a new variable called sagaMiddleware using the "createSagaMiddleware()" function.
+
+	Sample:
+		const sagaMiddleware = createSagaMiddleware();
+
+5. Add sagaMiddleware in the "middlewares" array.
+
+Note:
+	This section is creating a saga for shop-related codes.
+
+	6. Create a new file called "shop.sagas.js" under redux/shop/ directory.
+
+	//Importing certain effects from sagas
+	/*This effects allow to do different things with either the store like creating actions or listening for actions*/
+
+	7. Import the following:
+		**********************************************
+		/*What takeEvery does it it listens for every action of a specific type that we pass to it*/
+
+		import { takeEvery } from 'redux-saga/effects';
+
+		/*Import the ShopActionTypes because we're listening for specific action types*/
+
+		import ShopActionTypes from './shop.types';
+
+		**********************************************
+
+	8. Write the first based saga. This is a function that takes the "star" syntax. What this saga does with the effect is it's going to pause whenever a specific action type that we want comes in.
+
+		Sample Code:
+
+		shop.saga.js
+		****************************************
+		import { takeEvery } from 'redux-saga/effects';
+
+		import ShopActionTypes from './shop.types';
+
+		/*One of the sagas*/
+		export function* fetchCollectionsAsync() {
+			console.log('I am fired');
+		}
+
+		/*The base saga*/
+		export function* fetchCollectionsStart() {
+			yield takeEvery(
+				ShopActionTypes.FETCH_COLLECTIONS_START,
+				fetchCollectionsAsync
+			)
+		}
+		****************************************
+		Notes:
+			- takeEvery() first argument is the action that it listens for and the second argument is another generator function that will run in response to this "takeEvery" listener.
+
+			- the whole purpose of saga middleware is its whole purpose is to run these sagas all concurrently -- meaning it wants to run all the sagas altogether in a way that does not block the execution.
+
+			- takeEvery() creates a non-blocking call in order to not stop the application to continue running either other sagas or whatever the user wants to do. It doesn't pause the javascript waiting for anything inside of the "fetchCollectionAsync" to come back.
+
+	9. Go to store.js and import the base saga "fetchCollectionsStart" from "shop.sagas.js".
+
+	10. Below the "store" instance, write the following:
+
+		Code:
+
+		store.js
+		********************************************
+		import { fetchCollectionsStart } from '.shop/shop.sagas';
+
+		... //below the store instance
+
+		/*Runs the saga*/
+		sagaMiddleware.run(fetchCollectionsStart);
+		********************************************
+
+	11. There will be an error after this because the dispatch function that will run the asynchronous action is still the "thunk" function.
+
+	Instead of importing the fetchCollectionsStartAsync thunk function, import the fetchCollectionsStart instead which fires the action that our saga is listening for (FETCH_COLLECTIONS_START) and declare it inside the componentDidMount() as a replacement for the "thunk" function. This will solve the error.
+
+	...break
+
+------------Redux Thunk into Saga------------
+
+Code From Redux-Thunk:
+
+	shop.actions.js
+	******************************************************
+	/*The "thunk" function*/
+
+	export const fetchCollectionsStartAsync = () => {
+		return dispatch => {
+			/*Creating the collections reference*/
+			const collectionsRef = firestore.collection('collections');
+
+			/*Dispatching the function that will update the reducer's state "isFetching" to true...*/
+			dispatch(fetchCollectionsStart());
+
+			/*...Beginning of asynchronous request*/
+			collectionsRef
+				.get()
+				.then(snapshot => {
+					const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+					/*Dispatching the function that will update the reducer with payload*/
+					dispatch(fetchCollectionsSuccess(collectionsMap));
+				})
+				.catch(error => dispatch(fetchCollectionsFailure(error.message))
+				);
+		}
+	}
+	******************************************************
+	 Notes:
+	 	The thunk function is the one that held the logic of dispatching the subsequent follow up actions of updating our reducers or informing us that we had an error. 
+
+	 	Now instead of doing it in an action, we now do it in a saga which is why we switched our page action that we fire inside our shop page back to the original fetchCollectionsStart() (...instead of the "thunk" function) action
+
+	 	We no longer need an asynchronous action like the "thunk" function to handle that logic.
+	 	
+...continuation
+
+12. Import the firestore and convertCollectionsSnapshotToMap utility in "firebase.utils.js" in shop.sagas.js.
+
+13.	Import the action creators: fetchCollectionsSuccess() and fetchCollectionsFailure from  "shop.actions.js".	
+
+14. In the "shop.sagas.js", under the saga function that respond with the takeEvery effect base saga as the second argument, write the following code:
+	
+	Code:
+
+	shop.sagas.js
+	**********************************************
+	export function* fetchCollectionsAsync() {
+
+	/*Getting the collections reference*/
+	const collectionsRef = firestore.collection('collections');
+
+	/*...Beginning of asynchronous request*/
+	try {
+		const snapshot = yield collectionsRef.get();
+
+		/*call() is the effect inside of our generator function that invokes the method.
+		  -yielding this call of this method incase this call takes longer than we expect.
+		  - what call does is it accepts the function to be called as the first argument and passes the functions parameters through its second argument
+		*/
+		const collectionsMap = yield call(convertCollectionsSnapshotToMap, snapshot);
+		
+
+		/*put() is the dispatch() equivalent of dispatching action object to the reducer in redux-saga the only difference is we have to yield it.*/
+		yield put(fetchCollectionsSuccess(collectionsMap));
+
+	} catch (error) {
+		yield put(fetchCollectionsFailure(error.message));
+	}
+
+	/* This is the "thunk" equivalent way of doing the above saga:
+		collectionsRef
+			.get()
+			.then(snapshot => {
+				const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+				Dispatching the function that will update the reducer with payload
+				dispatch(fetchCollectionsSuccess(collectionsMap));
+			})
+			.catch(error => dispatch(fetchCollectionsFailure(error.message))
+			);
+	*/
+	}
+	**********************************************
+	Notes:
+		- Use try and catch block to handle errors just like in async await.
+		- logger knows what type of action is being created and these are saga actions.
+
+Data Flow of the App with Redux Saga of the example above:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+		-------------------------------------------------------------------------------------------------------------
+		|																											|
+		|																											|
+Shop Reducer: {																										|
+	collections: [...] 																								|
+		^																											|
+		|						fetchCollectionStartAsync															|			|					...code to get some stuff to firestore ----------                                       |
+		|									^								|										|
+		|									|								|										|
+		|									|					---------------------------							|
+Pass actions to reducers  					|							Dispatch new 	                    		|
+		|									|						    FETCH_COLLECTIONS_SUCCESS or	    		|
+		|					    fetchCollectionStart:                   FETCH_COLLECTIONS_FAILURE action    		|
+		|					{type: FETCH_COLLECTIONS_START}      --------------------------          				|
+		|									^								|										|
+		|									|								|										|
+		|									|								|										|
+		-----------------------------Saga Middleware <----------------------------Dispatch action: ---------- Component							  												      {type: FETCH_COLLECTIONS_START}
+	
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Notes:
+	When the Shop Page component did mount, it will dispatch the action to the reducer and will pass to the saga middleware first if this action is one of the actions that the middleware listens for.
+
+	If so, then when the base saga function generator (action listener) hears of this specific action (FETCH_COLLECTIONS_START for instance), it will invoke a function generator that will handle the asynchronous request of getting the collections from firestore.
+
+	If it is successful, then it will dispatch an action (FETCH_COLLECTIONS_SUCCESS for instance) to the reducer to update the "collections" state with the new "collections" from the database.
+
+	If it fails, then it will dispatch the action (FETCH_COLLECTIONS_FAILURE) to the reducer to update the error state.
+
+
+-----------take(), takeEvery(), takeLatest() Effects--------
+
+1. take
+	- it waits for an action that it listening for -- for it to happen. When it does, we're able to actually get the payload from this action as well if we wanted to.
+	- it gives back as a promise that gives resolved the actual payload value of this action if we had one.
+
+	Sample Code:
+	************************************
+	export function* incrementSaga() {
+		const incrementPayload = yield take('INCREMENT');
+
+
+	}
+	************************************
+	Notes:
+		When an action triggers, the take effect runs ones but not runs from top to bottom again when the same action triggers which the take effect listen for because "take" is following the basic the generator function.
+
+2. takeEvery
+	- unlike "take" effect, it fires a new task using the generator that is passed to it as its second argument. 
+
+	Sample Code:
+	************************************
+	import { takeEvery } from 'redux-saga/effects';
+
+	export function* onIncrement() {
+		yield console.log('I am incremented');
+	}
+
+	export function* incrementSaga() {
+		yield takeEvery(
+			'INCREMENT',
+			onIncrement
+		);
+	}
+	************************************
+	Notes:
+		When we trigger the action that takeEvery is listening for, under the hood, redux-saga is firing off a new task to run the onIncrement saga code.
+
+		Everytime the action object is fired, redux-saga is actually regenerating that generator (onIncrement). It's calling this onIncrement generator again and again. It's not running through the same incrementSaga() instead it's looping and listening for every increment call and then creaating new iterations or new tasks that are equivalent to whatever generator function that we pass to it.
+			- this is the big benefit of using "takeEvery" because we are able to actually loop and reuse this increment code more than one time and listen to all actions that come from the actions that takeEvery is listening for in a non-blocking way unlike "take" effect.
+
+3. takeLatest
+	- no matter how many times an action gets trigger (by a button, etc.), "takeLatest" effect will cancel all the previous task(saga) and only trigger the latest one that was clicked.
+	- pass the action payload to the new task (as an argument) that will be invoked in response to this effect.
+
+	Sample Code:
+	************************************
+	import { takeLatest, delay } from 'redux-saga/effects';
+
+	export function* onIncrement() {
+		yield console.log('I am incremented');
+		yield delay(3000); //in milliseconds
+		yield put({ type: 'INCREMENT_FROM_SAGA'})
+	}
+
+	export function* incrementSaga() {
+		yield takeLatest(
+			'INCREMENT',
+			onIncrement
+		);
+	}
+	************************************
+	Notes:
+		takeLatest effect still spawning a new saga every time the user clicks on the button but because the delay is 3000 ms meaning that our onIncrement() saga is stuck for 3000 ms we only ended up resolving one increment from saga because whenever it hits the delay and those latest clicks were coming in, redux saga was actually cancelling every previous spawn saga that was generated except for the latest one.
+
+-----------Root Saga-------------
+
+Scenario:
+	When we want to add another saga to run, we need to call the instance of createSagaMiddleware which is the "sagaMiddleware" and chain .run() which is redundant.
+
+Solution:
+	We want to create a root saga which handles all the base sagas to run all at once.
+
+	Steps:
+		1. Create a file called "root-saga.js" under redux directory.
+
+		2. Inside of this file import "all" and "call" effects.
+
+		3. Import the sagas that we want to call all at once from "shop.sagas.js".
+
+		4. Define your root saga generator function which will be exported to the store.js
+
+			Sample Code:
+
+			root.saga.js
+			************************************************
+			import { all, call } from 'redux-saga/effects';
+
+			import { fetchCollectionsStart } from './shop/shop.sagas';
+
+			export default function* rootSaga() {
+				yield all([
+					call(fetchCollectionsStart),
+					call(anotherSaga),
+					...and so on
+				]);
+			}
+			************************************************
+			Notes:
+				- What "all" effect does is it accepts a list of sagas inside the "call" effect as argument so that all base sagas (listeners) will be call at once.
+
+		5. Export this generator function to the "store.js" and pass it as an argument of sagaMiddleware.run([saga]).
+
+			Sample Code:
+
+			store.js
+			********************************************
+			import rootSaga from './root-saga';
+
+			...
+
+			sagaMiddleware.run(rootSaga);
+			********************************************
+			Notes:
+				So instead of doing like...
+
+				*************************************************
+				sagaMiddleware.run(baseSaga1);
+				sagaMiddleware.run(baseSaga2);
+				sagaMiddleware.run(baseSaga3);
+				...and so on to run all our saga action listeners
+				*************************************************
+
+				...we just use the new created "rootSaga" which run all these sagas all at once.
+
+------------Google Sign In into Sagas-----------
+
+Scenario:
+	Refactoring the GoogleSignIn from Observable Pattern to Promised based way of signing in the user. 
+
+Problem:
+	We want to use redux-saga to handle the signing of user with GoogleSignIn using redux-saga instead of observable pattern as an instance wherein if the company you are working with uses promised based of handling this signing in form.
+
+Comparison:
+	*The Observable Pattern sample code:
+
+		App.js
+		*********************************************************
+		unsubscribeFromAuth = null;
+
+		componentDidMount() {
+			const { setCurrentUser } = this.props;
+			this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+				if(userAuth) {
+					const userRef = await createUserProfileDocument(userAuth);
+
+					userRef.onSnapshot(snapShot => {
+						setCurrentUser({
+							currentUser: {
+								id: snapShot.id,
+								...snapShot.data()
+							}
+						});
+					});
+				}
+				else {
+					setCurrentUser(userAuth);
+				}
+			});
+		}
+
+		componentWillUnmount() {
+			this.unsubscribeFromAuth();
+		}
+		*********************************************************
+
+	*The Promised Pattern with redux-saga sample code:
+
+		user.sagas.js
+		*********************************************************
+		function* signInWithGoogle() {
+			try {
+				const { user } = yield auth.signInWithPopup(googleProvider);
+				const userRef = yield call(createUserProfileDocument, user);
+				const userSnapshot = yield userRef.get();
+				yield put(googleSignInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
+			} catch (error) {
+				yield put(googleSignInFailure(error));
+			}
+		}
+
+		export function* onGoogleSignInStart() {
+			yield takeLatest(UserActionTypes.GOOGLE_SIGN_IN_START, signInWithGoogle);
+		}
+
+		export function* userSagas() {
+			yield all([
+				call(onGoogleSignInStart)
+			]);
+		}
+		*********************************************************
+		Notes:
+			When the user clicks on the signin button, an action (object) will be dispatched to the reducer, wherein before it hits to the reducer, Redux Saga middleware (onGoogleSignInStart function generator) listens to this event which in response if this event has been fired, it will invoke the saga (signInWithGoogle) that handles the signing in with google and the storing of the user data to the firebase's firestore, and the setting of the current user in the App to show the SignOut button on the Home Page.
+Solution:
+	Steps:
+		1. Create an action object that will be passed to the reducer (which also is the action that the based saga is listening for).
+
+			1.1. Also add the action that is needed when the fetching of data is successful so this action will be fired to update the reducer's state with the new user payload.
+
+			1.2. Also add the action that will handle the error when the request fails.
+
+			(see user.actions.js in this project for reference)
+
+		2. Create a file called "user.sagas.js" (since this scenario focuses to the user state).
+
+		3. In user.sagas.js, define the base saga which listens for the action to be fired.
+
+			3.1. Import the "takeLatest" effect because we want to get the last action when the user clicks on the button (because the user has the possibility to click the button more than once)
+
+		4. Define the saga which will handle the signing in with google which is the function generator that will be invoked by the "takeLatest" effect as a response when it hears the action that it listens for.
+
+			4.1. Import the following from "firebase.utils.js" 
+				- auth, 
+					(to use the ".signInWithPopup([...the provider])")
+
+				- googleProvider, 
+					(the provider that will be passed as an argument to the ".signInWithPopup()")
+
+				- createUserProfileDocument
+					(which is a function defined to store the user data to the firestore and returned the user reference as a returned value which will be used to get the user snapshot)
+
+			4.2. Import also the action creator (the action when data is successfully fetched, and the action when data fetching fails).
+
+		5. Handle the request with the try-and-catch block to handle request error
+
+		6. Inside the try block do something like this:
+			Example Code:
+			*************************************************************
+			try {
+				/* waiting of the sign in process to be done, and destructure the user property from the returned value (which is the object with the user object that is signed in) */
+
+				const { user } = yield auth.signInWithPopup(googleProvider);
+
+				//calling the function that will store the users info to the firestore
+				const userRef = yield call(createUserProfileDocument, user);
+
+				//using the user reference and chaining .get() to get the user snapshot
+				const userSnapshot = yield userRef.get();
+
+				//dispatching the action object to the reducer with the new user payload when it succeed
+				yield put(googleSignInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
+
+			} catch (error) {
+				/*ispatching the action that will change the "error" state (in the reducer) with the error value handled by catch block*/
+
+				yield put(googleSignInFailure(error));
+			}
+
+
+			//Defining the root saga for user sagas. This saga will be passed to the rootSaga (which will be passed also as an argument of the sagaMiddleware.run() which run all the base sagas through it)
+
+			//first import the "all" and "call" effects from 'redux-saga/effects';
+
+			export function* userSagas() {
+				yield all([
+					call(onGoogleSignInStart)
+				]);
+			}
+			*************************************************************
+
+			...
+
+			Overview of the rootSaga function generator:
+
+			root-saga.js
+			*************************************************************
+			import { all, call } from 'redux-saga/effects';
+
+			import { userSagas } from './user/user.sagas';
+
+			export default function* rootSaga() {
+				yield all([
+					call(userSagas)
+				]);
+			}
+			*************************************************************
+
+			...
+
+			In the store.js
+			*************************************************************
+			(... some libraries)
+
+			import createSagaMiddleware from 'redux-saga';
+			import rootSaga from './root-saga';
+
+			const sagaMiddleware = createSagaMiddleware();
+
+			const middlewares = [sagaMiddleware];
+
+			(... some other codes (if there were))
+
+			/*runs all the sagas to listen to all the specific action that each of the base saga is listening for*/
+
+			sagaMiddleware.run(rootSaga);
+			*************************************************************
+Remember:
+	The same setup is done when using redux-thunk library.
+
+
+------------ Email Sign In into Sagas---------------
+
+* It's almos the same with "Google Sign In into Sagas".
+
+* Just remember to create a new function / function generator if a part of the code is written twice just to follow the DRY principle.
+
+	Example Code:
+
+	user.sagas.js
+	****************************************************
+	//DO THIS:
+	//reused function used by sagas to implement DRY (DO NOT REPEAT YOURSELF) principle.
+	function* getSnapshotFromUserAuth(userAuth) {
+		try {
+			const userRef = yield call(createUserProfileDocument, userAuth);
+			const userSnapshot = yield userRef.get();
+			yield put(signInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
+		} catch (error) {
+			yield put(signInFailure(error));
+		}
+	}
+
+	function* signInWithGoogle() {
+		try {
+			const { user } = yield auth.signInWithPopup(googleProvider);
+			yield getSnapshotFromUserAuth(user);
+		} catch (error) {
+			yield put(signInFailure(error));
+		}
+	}
+
+	function* signInWithEmail({ payload: { email, password }}) {
+		try {
+			const { user } = yield auth.signInWithEmailAndPassword(email, password);
+			yield getSnapshotFromUserAuth(user);
+		} catch (error) {
+			yield put(signInFailure(error));
+		}
+	}
+
+
+
+	//NOT THIS:
+	function* signInWithGoogle() {
+		try {
+			const { user } = yield auth.signInWithPopup(googleProvider);
+
+			//This is redundant
+			const userRef = yield call(createUserProfileDocument, userAuth);
+			const userSnapshot = yield userRef.get();
+			yield put(googleSignInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
+		} catch (error) {
+			yield put(googleSignInFailure(error));
+		}
+	}
+
+	function* signInWithEmail({ payload: { email, password }}) {
+		try {
+			const { user } = yield auth.signInWithEmailAndPassword(email, password);
+
+			//This is redundant
+			const userRef = yield call(createUserProfileDocument, userAuth);
+			const userSnapshot = yield userRef.get();
+			yield put(emailSignInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
+		} catch (error) {
+			yield put(emailSignInFailure(error));
+		}
+	}
+	****************************************************
+	Notes:
+		- Change the action types to make this code simple and non-repetitive.
+		- Remember to change the types to the "action creator" and "reducer action" (UNIDIRECTIONAL DATA FLOW)
+
+-------------Recreating Persistence-------------
+
+Scenario:
+	When a user signed in and redirected to the homepage with the button changed from "SignIn" to "Signout", when it accidentally closes the tab and get back to the app, the user is not signed in even if the user haven't signed out yet.
+
+	When we changed the way we signin user from Observable pattern using the observer called .onAuthStateChange() - which listens for the current user that is signed in and pass that user onto the userAuth parameter which then set this user as the current user in the redux "currentUser" state (which was used by the header component to render the SignOut button rather than the SignIn button) to Promised pattern, we remove this observer in our code.
+
+Solution:
+	1. Create a new action (object) in "user.actions.js" that will be dispatched (when the component mounts) which is the action that will be a cue of our action listener (some base saga function generator) to check the user session from firebase.
+
+	Sample Code:
+
+	user.actions.js
+	***************************************************
+	export const checkUserSession = () => ({
+		type: UserActionTypes.CHECK_USER_SESSION
+	});
+	***************************************************
+
+	2. Define a based saga that will listen to the action cue.
+	
+	Sample Code:
+
+	user.sagas.js
+	***************************************************
+	export function* onCheckUserSession() {
+		yield takeLatest(UserActionTypes.CHECK_USER_SESSION, [...new task w/ is "isUserAuthenticated" for instance]);
+	}
+	***************************************************
+
+	3. Define the saga that will be invoked in response to "takeLatest" effect when it hears the action that it listening for.
+		3.1. Create a utility function in "firebase.utils.js" and do the following:
+
+			Sample Code:
+
+			firebase.utils.js
+			***************************************************
+			//A utility function that returns the current user object as a promise that was signed in on firestore.
+
+			export const getCurrentUser = () => {
+				return new Promise((resolve, reject) => {
+					const unsubscribe = auth.onAuthStateChanged(userAuth => {
+						unsubscribe();
+						resolve(userAuth);
+					}, reject);
+				});
+			}
+			***************************************************
+
+		3.2. Check if the returned value of the utility function is not null, if it is not then declare the function that will handle the returned value to get the user snapshot from it and pass the snapshot as an argument for the action (object) that will be dispatch and update the user reducer with the new user payload. As a result, when the header  component renders, it renders the SignOut button instead because the current user exists.
+
+
+
+		Sample Code (for step 3):
+
+		user.sagas.js
+		***************************************************
+		function* isUserAuthenticated() {
+			const userAuth = yield getCurrentUser();
+
+			//checks if userAuth is null, ... it returns nothing if it is.
+			if(!userAuth) return;
+
+			yield getSnapshotFromUserAuth(userAuth);
+		}
+		***************************************************
+
+Remember:
+	Do not forget to call the newly created base saga.
+
+
+------------Sign Out with Sagas------------
+
+Scenario:
+	When signing out, we declare an anonymous function that will invoke the "auth.signOut()" function which is also an API that request to signout from firebase. 
+
+	When the use clicks the button, the page doesn't signout.
+
+Solution:
+	1. Create new actions with their action types that is in the following:
+
+		SIGN_OUT_START
+			//which is an action cue to the saga listener to start the sign out request process from firebase.
+		SIGN_OUT_SUCCESS
+			//which is an action that will be dispatched when the sign out request succeed and will update the reducers current user state to 'null'.
+		SIGN_OUT_FAILURE
+			//which is an action that will be dispatched when an api request rejection takes place which accepts an error argument from the catch block and update the reducer with the new error payload.
+
+
+	2. Add new cases to the reducer:
+
+		Example Code:
+
+		user.reducer.js
+		***************************************************
+
+		... some other codes...
+
+		case UserActionTypes.SIGN_OUT_SUCCESS:
+			return {
+				...state,
+				currentUser: null
+			}
+		case UserActionTypes.SIGN_OUT_FAILURE:
+			return {
+				...state,
+				error: action.payload
+			}
+		***************************************************
+
+	3. Dispatch the action cue (SIGN_OUT_START) in the header.component and pass it as a value in the synthetic event "onClick" which when the user clicks on the button, this action will be dispatched and heard by the saga listener to start the sign out process.
+
+	4. Create the base saga that will listen to the action cue.
+
+		Example Code:
+
+		user.sagas.js
+		**************************************************
+		export function* onSignOutStart() {
+			yield takeLatest(UserActionTypes.SIGN_OUT_START, signOut)
+		}
+		**************************************************
+
+	5. Create the saga that will execute the signing out process (which is the new task that will be invoke as a response to an effect)
+
+		Example Code:
+
+		user.sagas.js
+		**************************************************
+		function* signOut() {
+			try{
+				yield auth.signOut();
+				yield put(signOutSuccess());
+			} catch (error) {
+				yield put(signOutFailure(error));
+			}
+		}
+		**************************************************
+
+	6. Call the base saga so it will run as one of the middleware that listens for a specific action.
 
 
 
@@ -3786,3 +4503,54 @@ Generator Function Syntax (*):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
 
+import { connect } from 'react-redux';
+
 import FormInput from '../form-input/form-input.component';
 import CustomButton from '../custom-button/custom-button.component';
-import { auth, signInWithGoogle } from '../../firebase/firebase.utils';
+
+import { googleSignInStart, emailSignInStart } from '../../redux/user/user.actions';
 
 import './sign-in.styles.scss';
 
@@ -16,22 +19,16 @@ class SignIn extends Component {
 		};
 	}
 
+	//Destructure the email and password states and pass it to the action as an argument
 	handleSubmit = async event => {
 		event.preventDefault();
 
 		const { email, password } = this.state;
-		
-		try {
-			//passing email and password to firebase auth .signInWithEmailAndPassword() method with await which waits for the promised to be returned
-			await auth.signInWithEmailAndPassword(email, password);
+		const { emailSignInStart } = this.props;
 
-			//clears the form fields when the form submits
-			this.setState({ email: '', password: '' });
-
-		} catch (error) {
-			console.log(error);
-		}
+		emailSignInStart(email, password);
 		
+		this.setState({ email: '', password: '' });
 	}
 
 	handleChange = event => {
@@ -42,6 +39,7 @@ class SignIn extends Component {
 
 	render() {
 		const { email, password } = this.state;
+		const { googleSignInStart } = this.props;
 		return (
 			<div className='sign-in'>
 				<h2 className='title'>I already have an account</h2>
@@ -71,7 +69,7 @@ class SignIn extends Component {
 						</CustomButton>
 						<CustomButton 
 							type='button'
-							onClick={signInWithGoogle}
+							onClick={googleSignInStart}
 							isGoogleSignIn
 						>
 						Sign-in with Google
@@ -81,5 +79,11 @@ class SignIn extends Component {
 			</div>
 		);
 	}
-}
-export default SignIn;
+};
+
+const mapDispatchToProps = dispatch => ({
+	googleSignInStart: () => dispatch(googleSignInStart()),
+	emailSignInStart: (email, password) => dispatch(emailSignInStart({ email, password }))
+});
+
+export default connect(null, mapDispatchToProps)(SignIn);
