@@ -20,6 +20,7 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
 	const userRef = firestore.doc(`users/${userAuth.uid}`);
 
 	//gets the document snapshot from the document reference using the .get() method
+	//make sure you have already update your firebase database rules after 30 days of creating firebase project or else you get an error: Missing arguments ...etc.
 	const snapShot = await userRef.get();
 
 	//this creates a user data if there is no existing data on this documentRef.
@@ -87,7 +88,7 @@ export const getCurrentUser = () => {
 			resolve(userAuth);
 		}, reject);
 	});
-}
+};
 
 firebase.initializeApp(config);
 

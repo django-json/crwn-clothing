@@ -6,9 +6,9 @@ import { signInSuccess, signInFailure, signOutSuccess, signOutFailure, signUpSuc
 
 import { UserActionTypes } from './user.types';
 
-function* getSnapshotFromUserAuth(userAuth, additionalData) {
+function* getSnapshotFromUserAuth(userAuth) {
 	try {
-		const userRef = yield call(createUserProfileDocument, userAuth, additionalData);
+		const userRef = yield call(createUserProfileDocument, userAuth);
 		const userSnapshot = yield userRef.get();
 		yield put(signInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
 	} catch (error) {
@@ -40,6 +40,9 @@ function* signInWithEmail({ payload: { email, password }}) {
 function* isUserAuthenticated() {
 	const userAuth = yield getCurrentUser();
 	if(!userAuth) return;
+	// const userRef = yield call(createUserProfileDocument, userAuth);
+	// const userSnapshot = yield userRef.get();
+	// console.log('User: ',userSnapshot);
 	yield getSnapshotFromUserAuth(userAuth);
 }
 

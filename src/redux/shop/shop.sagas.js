@@ -6,11 +6,11 @@ import { ShopActionTypes } from './shop.types';
 
 
 export function* fetchCollectionsAsync() {
-	/*Getting the collections reference*/
-	const collectionsRef = firestore.collection('collections');
-
 	/*...Beginning of asynchronous request*/
 	try {
+		/*Getting the collections reference*/
+		const collectionsRef = firestore.collection('collections');
+		
 		const snapshot = yield collectionsRef.get();
 		const collectionsMap = yield call(convertCollectionsSnapshotToMap, snapshot);
 		

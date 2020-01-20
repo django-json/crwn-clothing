@@ -16,16 +16,11 @@ import { checkUserSession } from './redux/user/user.actions';
 import { selectCurrentUser } from './redux/user/user.selectors';
 
 class App extends Component {
-	unsubscribeFromAuth = null;
 
 	componentDidMount() {
 		const { checkUserSession } = this.props;
 
 		checkUserSession();
-	}
-
-	componentWillUnmount() {
-		this.unsubscribeFromAuth();
 	}
 
 	render() {   

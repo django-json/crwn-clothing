@@ -4094,7 +4094,7 @@ Solution:
 				...and so on to run all our saga action listeners
 				*************************************************
 
-				...we just use the new created "rootSaga" which run all these sagas all at once.
+				...we just use the new created "rootSaga" which run all these sagas at once.
 
 ------------Google Sign In into Sagas-----------
 
@@ -4180,7 +4180,7 @@ Solution:
 
 			3.1. Import the "takeLatest" effect because we want to get the last action when the user clicks on the button (because the user has the possibility to click the button more than once)
 
-		4. Define the saga which will handle the signing in with google which is the function generator that will be invoked by the "takeLatest" effect as a response when it hears the action that it listens for.
+		4. Define the saga which will handle the signing in with google which is the function generator that will be invoked by the "takeLatest" effect as a response when it hears the action that it listening for.
 
 			4.1. Import the following from "firebase.utils.js" 
 				- auth, 
@@ -4268,12 +4268,12 @@ Solution:
 			sagaMiddleware.run(rootSaga);
 			*************************************************************
 Remember:
-	The same setup is done when using redux-thunk library.
+	The same installation setup is done when applying redux-thunk library in the app.
 
 
 ------------ Email Sign In into Sagas---------------
 
-* It's almos the same with "Google Sign In into Sagas".
+* It's almost the same with "Google Sign In into Sagas".
 
 * Just remember to create a new function / function generator if a part of the code is written twice just to follow the DRY principle.
 
@@ -4341,8 +4341,8 @@ Remember:
 	}
 	****************************************************
 	Notes:
-		- Change the action types to make this code simple and non-repetitive.
-		- Remember to change the types to the "action creator" and "reducer action" (UNIDIRECTIONAL DATA FLOW)
+		- Change the action types to make this code simple and non-repetitive if you want to add another action (object).
+		- Remember to change the action types in the "action creator" and "reducer action" (UNIDIRECTIONAL DATA FLOW) when a new action types has been added or updated.
 
 -------------Recreating Persistence-------------
 
@@ -4352,7 +4352,7 @@ Scenario:
 	When we changed the way we signin user from Observable pattern using the observer called .onAuthStateChange() - which listens for the current user that is signed in and pass that user onto the userAuth parameter which then set this user as the current user in the redux "currentUser" state (which was used by the header component to render the SignOut button rather than the SignIn button) to Promised pattern, we remove this observer in our code.
 
 Solution:
-	1. Create a new action (object) in "user.actions.js" that will be dispatched (when the component mounts) which is the action that will be a cue of our action listener (some base saga function generator) to check the user session from firebase.
+	1. Create a new action (object) in "user.actions.js" that will be dispatched (when the component mounts) which is the action that will be a cue for our action listener (some base saga function generator) to check the user session from firebase.
 
 	Sample Code:
 
@@ -4370,7 +4370,7 @@ Solution:
 	user.sagas.js
 	***************************************************
 	export function* onCheckUserSession() {
-		yield takeLatest(UserActionTypes.CHECK_USER_SESSION, [...new task w/ is "isUserAuthenticated" for instance]);
+		yield takeLatest(UserActionTypes.CHECK_USER_SESSION, [...new task w/c is "isUserAuthenticated" for instance]);
 	}
 	***************************************************
 
@@ -4393,7 +4393,7 @@ Solution:
 			}
 			***************************************************
 
-		3.2. Check if the returned value of the utility function is not null, if it is not then declare the function that will handle the returned value to get the user snapshot from it and pass the snapshot as an argument for the action (object) that will be dispatch and update the user reducer with the new user payload. As a result, when the header  component renders, it renders the SignOut button instead because the current user exists.
+		3.2. Check if the returned value of the utility function is not null, if it is not then declare the function that will handle the returned value to get the user snapshot from it and pass the snapshot as an argument for the action (object) that will be dispatched and update the user reducer with the new user payload. As a result, when the header component renders, it renders the SignOut button instead because the current user exists.
 
 
 
@@ -4412,7 +4412,7 @@ Solution:
 		***************************************************
 
 Remember:
-	Do not forget to call the newly created base saga.
+	Do not forget to call the newly created base saga to activate this listener in the whole application.
 
 
 ------------Sign Out with Sagas------------
@@ -4484,6 +4484,128 @@ Solution:
 		**************************************************
 
 	6. Call the base saga so it will run as one of the middleware that listens for a specific action.
+
+-----------Sign Up with Sagas----------
+
+1. Do the same process as signin but remember when the signup process succeed, make sure you have created a new saga listener for the action that got dispatched (SIGN_UP_SUCCESS) and make use of the payload from the action (this payload is a raw user object - not yet transform into another format) to call the function that the signin saga uses to signin user. In other words, the user signs up, afterwards, the user will be signed in automatically in the background. (This purpose is to implement DRY principle. Hence, the main uses of components)
+
+
+*****************************************************************************************************
+
+CHAPTER 21. Master Project React Hooks
+
+----------useState-------------
+
+- let you use state and other React features without writing a class.
+
+Syntax:
+	const [property, setProperty] = useState([property initial value]);
+
+	Example Code:
+		******************************************
+		const [user, setUser] = useState(null);
+		******************************************
+
+		Note:
+			This will define a user state with an initial value of null.
+
+			This property can be updated using the defined setUser setter by doing like this:
+				****************************************
+				setUser('Jaztin');
+				****************************************
+
+---------useEffect----------
+
+- it gives the ability to fire side effects inside of our functional components.
+
+- it does not get back any value unlike useState.
+
+- it gets a function that gets called whenever the component changes or whenever the component updates and re-renders.
+
+	Example:
+	****************************************
+	useEffect(() => {
+		console.log('Hello');
+	});
+	****************************************
+	Notes:
+		-When component mounts for the first time, this effect will fire because this is mimicking the componentDidMount() lifecycle method.
+
+		-it will also fire whenever the component rerenders.
+
+		-remember that when state change in any ways, the component always rerenders just like a class component.
+
+		- useEffect is not just mimicking componentDidMount but also mimicking any update lifecycle methods that fire whenever render gets called.
+
+			- in order to just mimic only the componentDidMount, put a second parameter on the useEffect hook.
+
+			- the second parameter will be an array. This array takes properties that this effect has access to that will not trigger a rerender.
+
+			- only pass an empty array if you want to apply this effect once the component mounts.
+
+- if you want to use an async function (like for fetching purposes), encapsulate the async function with another function (usually anonymous).	
+
+	Example Code:
+	***************************************
+	useEffect(() => {
+		async () => {
+
+		}
+	});
+	***************************************		
+	Notes:
+		async function returns an async function object which is not what useEffect accepts as an argument because it accepts a function.
+
+Building a componentDidMount like function using useEffect:
+
+	Sample Code:
+	***************************************		
+	useEffect(() => {
+		const fetchFunc = async () => {
+			const response = await fetch(`some address`);
+			const resJson = await response.json();
+			setUser(resJson[0])
+		};
+
+		//Call the fetchFunc which will fetch from the json and give as a response and convert in to json.
+
+		fetchFunc();
+	});
+	***************************************	
+	Notes:
+		- Remember to put an empty/valued array as a second argument of useEffect. 
+
+		- Be careful of passing a property in this array because it may cause an infinite loop inside of the component
+
+----------Hook Rules----------
+
+Scenario:
+	If we didn't want the useEffect hook to fire because the search query did not exist yet or at the very least it was not anything meaningful we think that we can actually use the "if block" statement to make a condition of something before the useEffect will be updated by applying the useEffect inside the inside the statement which is incorrect.
+
+Solution:
+	Inside the useEffect, use the "if block" statement and encapsulate all the code that should be running when the condition was met.
+
+	Example Code:
+	*********************************************
+	useEffect(() => {
+		/*
+			This will fetch something if the someStateProperty that the fetch is dependent on is not empty or null.
+		*/
+
+		if([someStateProperty].length > 0) {
+			const fetchFunc = async () => {
+				const response = await fetch(`some address`);
+				const resJson = await response.json();
+				setUser(resJson[0])
+			};
+		}
+
+		fetchFunc();
+	});
+	********************************************* 
+
+
+-----------Converting Class Components With useState-----------
 
 
 
