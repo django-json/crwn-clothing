@@ -4605,7 +4605,30 @@ Solution:
 	********************************************* 
 
 
------------Converting Class Components With useState-----------
+----------useEffect as ComponentWillUnmount()-----------
+
+useEffect is a function that can also return a function called a "cleanup function".
+
+Clean-Up Function
+	- is what useEffect calls when the component unmounts.
+
+	Example Code:
+	*******************************************
+	useEffect(() => {
+
+		//Cleanup function
+		return () => {
+			unsubscribeFromAuth();
+		}
+	});
+	*******************************************
+	Question:
+		Why whould we want something like this?
+	Answer:
+		When you want to unsubscribe after you subscribed to an observable stream of events (Observable Pattern) like in firebase.
+
+
+
 
 
 

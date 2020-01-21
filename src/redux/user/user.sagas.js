@@ -55,7 +55,7 @@ function* signOut() {
 	}
 }
 
-function* signUp({ payload: { email, password, displayName }}) {
+function* signUp({ payload: { email, password, displayName } }) {
 	try {
 		//Deconstucts the user property returned by auth after creating a user using .createUserWithEmailAndPassword() built-in auth method.
 		const { user } = yield auth.createUserWithEmailAndPassword(email, password);

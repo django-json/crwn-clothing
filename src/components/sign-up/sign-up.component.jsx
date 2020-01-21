@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
 import { connect } from 'react-redux';
 
@@ -9,31 +9,20 @@ import { signUpStart } from '../../redux/user/user.actions';
 
 import './sign-up.styles.scss';
 
-class SignUp extends Component{
-	constructor() {
-		super();
+const SignUp = ({ signUpStart }) => {
 
-		this.state = {
-			displayName: '',
-			email: '',
-			password: '',
-			confirmPassword: '',
-			success: false
-		};
-	}
-	//Create actiontypes for: signupstart, signupsuccess, signupfailure
-	//Create actions for each types.
-	//Update the user reducer
-	//Dispatch the action cue (signupstart)
-	//Create a based saga (listener)
-	//Create the saga that will execute the signup process to firebase
+	const [userCredentials, setUserCredentials] = useState({
+		displayName: '',
+		email: '',
+		password: '',
+		confirmPassword: ''
+	});
 
-	handleSubmit = async event => {
+	const { displayName, email, password, confirmPassword } = userCredentials;
+
+	const handleSubmit = async event => {
 		//Used to prevent native browser reloads when the form submits
 		event.preventDefault();
-		const { signUpStart } = this.props;
-		//Deconstructs the properties from the state object
-		const { displayName, email, password, confirmPassword } = this.state;
 		//Checks if passwords match
 		if(password !== confirmPassword) {
 			alert("passwords don't match");
@@ -43,72 +32,64 @@ class SignUp extends Component{
 		signUpStart({ email, password, displayName });
 
 		//This will clear the form fields after the form submits
-		this.setState({
+		setUserCredentials({
+			...userCredentials,
 			displayName: '',
 			email: '',
 			password: '',
-			confirmPassword: '',
-			success: true
+			confirmPassword: ''
 		});
 	};
 
-	handleChange = event => {
+	const handleChange = event => {
 		const { name, value } = event.target;
 
-		this.setState({ [name]: value });
+		setUserCredentials({ ...userCredentials, [name]: value });
 	};
 
-	render() {
-		const { displayName, email, password, confirmPassword, success } = this.state;
-		return(
-			<div className='sign-up'>
-				<h2 className='title'>I do not have an account</h2>
-				{
-					success ? (
-						<span className='success'>Sign up sucessfull!</span>
-					):( 
-						<span>Sign up with your email and password</span>
-					)
-				}
-				<form className='sign-up-form' onSubmit={this.handleSubmit}>
-					<FormInput
-						name='displayName'
-						type='text'
-						value={displayName}
-						onChange={this.handleChange}
-						label='Display Name'
-						required
-					/>
-					<FormInput
-						name='email'
-						type='email'
-						value={email}
-						onChange={this.handleChange}
-						label='Email'
-						required
-					/>
-					<FormInput
-						name='password'
-						type='password'
-						value={password}
-						onChange={this.handleChange}
-						label='Password'
-						required
-					/>
-					<FormInput
-						name='confirmPassword'
-						type='password'
-						value={confirmPassword}
-						onChange={this.handleChange}
-						label='Confirm Password'
-						required
-					/>
+	return(
+		<div className='sign-up'>
+			<h2 className='title'>I do not have an account</h2>
+			<span>Sign up with your email and password</span>
+				
+			<form className='sign-up-form' onSubmit={handleSubmit}>
+				<FormInput
+					name='displayName'
+					type='text'
+					value={displayName}
+					onChange={handleChange}
+					label='Display Name'
+					required
+				/>
+				<FormInput
+					name='email'
+					type='email'
+					value={email}
+					onChange={handleChange}
+					label='Email'
+					required
+				/>
+				<FormInput
+					name='password'
+					type='password'
+					value={password}
+					onChange={handleChange}
+					label='Password'
+					required
+				/>
+				<FormInput
+					name='confirmPassword'
+					type='password'
+					value={confirmPassword}
+					onChange={handleChange}
+					label='Confirm Password'
+					required
+				/>
 
-					<CustomButton type='submit'>SIGN UP</CustomButton>
-				</form>
-			</div>
-		)
-	}
+				<CustomButton type='submit'>SIGN UP</CustomButton>
+			</form>
+		</div>
+	);
 };
 
 const mapDispatchToProps = dispatch => ({
