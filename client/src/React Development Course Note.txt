@@ -5222,11 +5222,15 @@ Solution:
 			Example:
 				|	heroku buildpacks:remove mars/create-react-app
 
-Committing the changes to heroku:
+Committing changes to heroku:
 
 1. git add -A
 2. git commit -m "...message here"
-3. 				
+3. Set the heroku configuration to enable to access the stripe secret key from .env file by using the command:
+	|	heroku config:set STRIPE_SECRET_KEY=[your_secret_key]	
+
+	Note:
+		If you forgot to set the new configuration to heroku, the stripe charges will fail. You will get a request error with status 400 on the console.
 
 
 
