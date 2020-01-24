@@ -4627,68 +4627,606 @@ Clean-Up Function
 	Answer:
 		When you want to unsubscribe after you subscribed to an observable stream of events (Observable Pattern) like in firebase.
 
+----------Custom Hooks-----------
+
+* Creating custom hooks is somewhat the same as creating HOC.
+
+* When you create custom hooks, under "src" folder, create a new folder called "effects" and in this folder create a file for your custom hook in a naming convention format like "use-someVerb.effect.js".
+
+	Example:
+
+		Scenario:
+			When two components uses fetch to fetch data from a fake api with useEffect() hook. In order to reuse the code, we want to create a custom hook.
+
+		Solution:
+			1. Create a new file called "use-fetch.effect.js" under "effects" folder.
+
+			2. Sample Code:
+
+			***************************************
+			import { useState, useEffect } from 'react';
+
+			const useFetch = url => {
+				const [data, setData] = useState(null);
+
+				useEffect(() => {
+					const fetchData = async () => {
+						const res = await fetch(url);
+						const dataArray = res.json();
+						setData(dataArray[0]);
+					};
+
+					fetchData();
+				});
+
+				return data;
+			};
+			export default useFetch;
+			***************************************
+			Notes:
+				We didn't pass a second argument for the useEffect hook because we always want to get the live data from the API in case the data has been changed.
+
+				But if we want to call useEffect everytime the url changes, then we pass that "url" inside an array to conditionally fire useEffect() hook.
+
+			3. Import this hook to the components and just call useFetch and pass the fake API url as the argument for this hook. Make sure you define a container variable which will hold the returned value from this hook. 
+
+-----------useReducer-----------
+
+- let us actually build out reducer functions and leverage them a state management inside of our components the same way that useState() hook does except it's going to follow a similar flow of data of firing actions and then those actions changing a reducer object of some kind the way we've seen with redux except localized to a component.
+
+- this hook is really great in places where you need more complex local state management.
+
+Using useReducer Hook:
+	1. Import useReducer from react library.
+
+		Syntax:
+		*******************************************
+			const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+		*******************************************
+		Notes:
+			- Remember that most hooks that return a value is in Array data type.
+
+			- We get two things from the useReducer hook. They are:
+				1. state
+					- the current state of the reducer.
+
+				2. dispatch
+					- being the literal function that we get that allows us to pass actions to our reducer.
+
+			- In order to instantiate this reducer, we pass two things:
+				1. reducer
+					- the reducer itself. The reducer being the function that gets both the "state" and an "action" and then using a switch statement returns back some object that represents our state. This is the same as the reducer in redux.
+
+				2. INITIAL_STATE
+					- the initial/defaul state value.
+
+	2. Initialize you INITIAL_STATE object outside the component scope (before component definition. Also same with reducer and action).
+
+	3. Define your reducer function.
+
+	4. Define your action function that return action object.
+
+	5. Dispatch your action to update the reducer with the new payload using the "dispatch".
+
+	~ All of this implementation is exactly the same with the redux.
+
+- useReducer hook is a native react way of implementing redux.
+
+- sometimes it's actually very useful to use this when you need something a little bit more miniscule (small) than a full redux implementation inside of your application but you think you need something more complex than simply just using useState() hook.
 
 
+*************************************************
+
+CHAPTER #22. Master Project Stripe Payments Part 2 - Backend
 
 
+-----------Introduction to Backend-----------
+
+* Stripe needs a backend.
+
+* Stripe has two keys:
+	1. Publishable key
+		- this is the key needed in the front-end to use the stripe checkout component which allows us to input our payment credentials.
+
+	2. Secret Key
+		- this is the secret key needed to be stored hidden from the users. This is the key used to allow successful actual payment using Stripe services and should be stored in the backend server.
+
+		Note:
+			- Other users are not able to intercept that key when we're making payments through the frontend application.
+
+			- If people were to get access to the secret key, they would be able to technically make payments on our behalf or take things out with this secret key.
+
+			- They can also steal or intercept people's stripe payments when they're in the middle of being sent to our backend.
+
+			- There is nothing you can truly hide on the frontend. You absolutely must keep anything related that you want to hide on the backend.
+
+* The backend server takes requests and sends it out (response).
 
 
+Node
+	- is an environment that let us run javascript outside of the browser.
+
+	- Node.js code is in the Backend Server to handle logic.
 
 
+Rest Backend Diagram:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
+							 -------  ------------send homepage html/css/js---------------------
+		------------------->| /home | <-----------GET homepage data-------------------------   |
+		|					 -------													   |   |
+		|																				   |   |
+		|																				   |   V
+ ---------------------			 -------										       -----------------
+| Rest Backend Server | ------->| /shop | <----------GET shop page data-------------- | Web Application |
+ ---------------------			 -------  -----------send shop page html/css/js----->  -----------------
+		|																				   |   ^
+		|																				   |   |
+		|					 -----------												   |   |
+		------------------->| /checkout | <-----GET checkout data---------------------------   |
+							 -----------  ------send checkout html/css/js-----------------------
 
 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Description:
+	- The Web application send a request to GET/DELETE/UPDATE some data through an endpoint (route e.g. /home) in the server and the REST Backend Server send a response with what was requested.
+
+	- In React, the backend server will send a response in JSON format instead of some html/css/js.
+	  - React uses JS to manipulate the DOM so we don't need to get some html/css/js from the server (which will cost much time to load a page)
 
 
+------------ Creating the Server inside the Project--------
+
+Setup:
+	1. Under the project folder (crwn-clothing), create a new folder called "client".
+		Note:
+			Use the CLI for this.
+
+	2. Move all the files in the project folder to the client folder using the command:
+
+		|	mv ./* ./client
+
+	3. Under the project folder, create a new "package.json" because the server has its own dependencies.
+
+	4. Create a new file called "server.js" for our server.
+		Note:
+			This server.js file will represent pretty much the entry point for our server code.
+
+	5. Modify the package.json with:
+
+		*********************************************
+		{
+		  "name": "crwn-clothing-server",
+		  "version": "1.0.0",
+		  "scripts": {
+		    "client": "cd client && npm start", 
+		    		//change directory to client and start the application.
+		    "server": "nodemon server.js",      
+		    		//wrap the server.js with nodemon which will allow live-reloading when changes was made in the server codes.
+		    "build": "cd client && npm run build", 
+		    		//change directory to client and run a build/optimized version of the application.
+		    "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"", 
+		    		//run both the server and the client
+		    "start": "node server.js", 
+		    		//this script is included for heroku.
+		    "heroku-postbuild": "cd client && npm install && npm install --only=dev --no-shrinkwrap && npm run build"
+		    		//this script will run heroku itself after it's finished building
+		  },
+		  "dependencies": {
+		    "body-parser": "^1.18.3",
+		    		//convert requests bodies into JSON
+		    "compression": "1.7.4",
+		    "cors": "2.8.5",
+		    		//handle cross-origin-requests.
+		    "dotenv": "7.0.0",
+		    		//allows to actually store secret keys.
+		    "express": "^4.16.4",
+		    "stripe": "6.28.0"
+		    		//library use to make charges (payment)
+		  },
+		  "devDependencies": {
+		    "concurrently": "^4.0.1"
+		  }
+		}
+		***********************************************
+		Notes:
+			- "concurrently" package will allow us run both of the server and the client in one terminal.
+
+				- it also allows us to pass this kill others on fail which means that if one breaks, the other one will also break.
+
+				- this is the main benefit of running "concurrently".
+
+			- heroku can't use nodemon to wrap and run the server.
+
+				- hot reloading is only needed for development purposes.
 
 
+			- "heroku-postbuild" will go to the client and it's going to install all of the node modules and then it's going to install any of our dev dependencies.
+
+				- the no-shrinkwrap is a flag that we were put in where we don't want to shrink wrappings.
+
+				- Shrink wrappings just means that it locks down all of the dependency versions which we just don't want that to do
+
+	6. Install nodemon with the command:
+		|	npm install -g nodemon
+		
+	7. With the terminal, run the command to install all the dependencies for the server.
+		|	npm install
 
 
+----------Building a Basic Server----------
+
+1. Import express using the ES5 way of importing using the "require" keyword.
+	
+	Note:
+		In node.js, it uses the ES5 instead of ES6. In other words, we don't have access to the "import" keyword when we want to leverage a library.
+
+2. Import cors.
+
+3. Import the body-parser library
+
+4. Import path. 
+	- path gets bundled into any node project so we don't actually bring in to our package.json.
+
+	- what this module does is it let us build out pathing for our directories. 
+
+		- the reason for this is in file production builds, most builds get optimized and you don't actually know a lot of the times what the directory name.
+
+		- path just allows it in the moment to calculate it for us.
+
+		- the main idea of path is that it allows us to dynamically build when we call it from our current directory to where we're actually trying to go.
+
+	Sample Code:
+
+	server.js
+	********************************************
+	const express = require('express');
+	const cors = require('cors');
+	const bodyParser = require('body-parser');
+	const path = require('path');
+	********************************************
+
+5. Create a new file called ".env". Set the secret key value from your stripe account.
+
+	Sample Code:
+
+	.env
+	********************************************
+	STRIPE_SECRET_KEY = [YOUR_STRIPE_SECRET_KEY]
+	********************************************
+
+6. In server.js, require "dotenv" library only in development node environment.
+
+	Sample Code:
+
+	server.js
+	********************************************
+	...imported libraries
+
+	if(process.env.NODE_ENV !== 'production') {
+		require('dotenv').config();
+	}
+	********************************************
+	Note:
+		- This loads the "dotenv" into the process environment (process.env) which allows the process.env now to access that secret key. 
+
+7. Inside the .gitignore file, add the .env file. 
+
+	Sample Code:
+
+	.gitignore
+	*******************************************
+	.DS_Store
+	...some things
+
+	.env
+	*******************************************
 
 
+	Note:
+		In this way, we make sure that we don't ever send any sensitive information we put in the .env and into any repos because that pretty much eliminates the purpose of trying to make it secret.
+
+8. Use express library by instantiating it.
+
+	Sample Code:
+
+	server.js
+	******************************************
+	...
+
+	const app = express();
+	******************************************
+	Note:
+		- This will instantiate for us a new express application.
+
+9. Set the port that we're going to use.
+
+	Sample Code:
+
+	server.js
+	******************************************
+	...
+
+	const port = process.env.PORT || 5000;
+	******************************************
+	Note:
+		- This will set the port automatically for us when we host it using heroku, else, it will set the port to 5000.
+
+10. In package.json (client project folder), add a proxy key which create-react-app will know how to use.
+
+	Sample Code:
+
+	client/package.js
+	*****************************************
+	{
+	  "name": "crwn-clothing",
+	  "version": "0.1.0",
+	  "private": true,
+	  "proxy": "http://localhost:5000",
+
+	  ...
+	}
+	*****************************************
+
+11. Apply the necessary middlewares using the .use() method from express instance.
+
+	Sample Code:
+
+	server.js
+	*****************************************
+	...
+
+	//Middlewares
+
+	/*Convert body to json()*/
+	app.use(bodyParser.json());
+
+	/*
+		Makes sure that the uri do not contain spaces or symbols
+	*/
+
+	app.use(bodyParser.urlencoded({ extended: true }));
+
+	/*
+		CORS stands for "Cross-Origin-Requests"
+		Allows cross origin requests from different origins (e.g. PORT 3000 request to PORT 5000)
+	*/
+
+	app.use(cors());
+	*****************************************
+
+12. Serve the client application now that we're hosting our own web server.
+
+	Example Code:
+
+	server.js
+	*****************************************
+	...
+
+	if(process.env.NODE_ENV === 'production') {
+		app.use(express.static(path.join(__dirname, 'client/build')));
+
+		/*
+			Sending static file(s) for every url the user hits (endpoint).
+
+			For any route that is not covered by the future routes we're going to write, it will hit to this endpoint and send the static file(s).
+		*/
+
+		app.get('*', function(req, res) {
+			res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+		});
+	}
+	*****************************************
+	Notes:
+		- Whenever heroku receives a request, it's going to determine based on the url path what to do. Because now we are dynamically in control of telling this server what we want to host it, what we want to send back to the client that's asking for something.
+
+		-express.static() allows us to serve a certain file inside of this url that we pass to it or this "path".
+
+		- the path that we passed was using our "path" library and we're joining this directory (__dirname) which tells us what directory we're currently in and then we're pointing to "client/build".
+
+		- the only way that we're actually able to serve it is we have to say what route we want to use it.
+
+13. Listen
+
+	Example Code:
+
+	server.js
+	****************************************
+	app.listen(port, error => {
+		if(error) throw error;
+		console.log('Serving running on port', port);
+	});
+	****************************************
+
+----------What we are building---------
+
+1. Set up the first route that allows to make the stripe charge.
+
+	Note:
+		In order for the charge to be legitimate, it needs to actually come with a secret key that we get from stripe that we need to send with our request to stripe in order to make the charge so that stripe knows that the charge is coming from our account.
 
 
+Payment Flow Diagram:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+	  Clientside App
+			|
+			|
+			|
+			|
+    Send payment token
+   			|
+			|
+			|
+			V
+		/payment  ------------ Make Payment -----> Stripe
+			|				Charge to Stripe
+	  Express Server
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Explanation:
+	Clientside App will send a payment token to the payment route (/payment).
+
+	The payment route is then going to take that token and then use the stripe library to actually make a payment charge to stripe.
 
 
+-----------Backend Payment Route-----------
+
+1. In server.js, define the payment route. 
+
+	Example Code:
+
+	server.js
+	**************************************
+	app.post('/payment', (req, res) => {
+	/*	
+		Create the proper body object that we pass the stripe using values that we get from the token and that token of course as we know is going to come in through the requests that we make from our fontend.
+	*/
+		const body = {
+			source: req.body.token.id,
+			amount: req.body.amount,
+			currency: 'usd'
+		};
+	}
+	**************************************
+
+2. Pass the body object to stripe so do the following:
+
+	2.1. After the line where dotenv library is required, write the following:
+
+		Example Code:
+
+		server.js
+		**************************************
+		... 
+
+		/*
+			Requiring stripe library and directly invoking the function from stripe that will accept the secret key as an argument which will then return a stripe object which allows to make charges.
+		*/
+
+		const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+		**************************************
+		Note:
+			In order to actually leverage the stripe library that we're trying to bring in, we need access to that secret key that was stored in the .env file.
+
+3. After the defined body object, create a new stripe charges.
+
+	Example Code:
+
+	server.js
+	****************************************
+	...
+
+	post('/payment', (...) => {
+
+		... body object
+
+		//Creating new Stripe charges
+		stripe.charges.create(body, (stripeErr, stripeRes) => {
+			if(stripeErr) {
+				res.status(500).send({ error: stripeErr });
+			} else {
+				res.status(200).send({ success: stripeRes});
+			}
+		});
+	});
+	****************************************
+	Note:
+		create() first argument is for the "body" object.
+		The second argument is a callback function which accepts the error object as the first arg if an stripe api request fails, and the res object as the second arg when it succeed.
 
 
+-------------Connecting Client to Server----------
+
+1. Using the terminal, on the project root directory, run the command:
+
+	|	npm run dev
+
+	Note:
+		This will start both the backend server and the client application.
+
+2. Go to the stripe-button component from the frontend, inside the function that gets called when the payment form is passed (onToken function). Post the token with the amount to the server through the payment route using native fetch() or axios library by doing the following:
+
+	Example Code:
+
+	stripe-button.component.jsx
+	**************************************************
+	const onToken = token => {
+
+		/* Using native fetch()
+		*******************************************/
+
+		fetch('http://localhost:5000/payment', {
+			method: 'post',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				amount: priceForStripe,
+				token
+			})
+		})
+			.then(response => {
+				alert('Payment successful!');
+			})
+			.catch(error => {
+				alert('Payment error: ', JSON.parse(error));
+			}); 
+
+		/* Using axios
+		*******************************************/
+
+		axios({
+			method: 'post',
+			url: 'payment',
+			data: {
+				amount: priceForStripe,
+				token
+			}
+		})
+		.then((...) => {
+			...
+		})
+		.catch(error) => {
+			...
+		});
+	};
+	**************************************************
+
+	Note:
+		To install axios, use the command:
+			|	npm install axios
 
 
+----------Deploying to Production-----------
 
+* To check the list of project hosted on Heroku, use the following command:
 
+	|	heroku apps
 
+Scenario:
+	- Before creating the backend server, we deploy our create-react application to heroku where we use "buildpack" to optimized our code for us before it was hosted to heroku.
 
+	- Now, when we create the server, the server itself will build/optimized the client application for us instead of buildpack. 
 
+Solution:
+	- Remove the buildpack that is used by doing the following:
 
+		1. Checking what buildpack is used:
+			|	heroku buildpacks
 
+		2. Removing buildpack
+			|	heroko buildpacks:remove [...paste the buildpack url here]
 
+			Example:
+				|	heroku buildpacks:remove mars/create-react-app
 
+Committing the changes to heroku:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+1. git add -A
+2. git commit -m "...message here"
+3. 				
 
 
 
